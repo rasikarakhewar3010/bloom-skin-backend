@@ -16,27 +16,27 @@ const THEME_COLORS = {
 const knowledgeBase = {
   greeting: {
     title: "Greeting",
-    keywords: ['hello', 'hi', 'hey'],
+    keywords: ['hello', 'hi', 'hey', 'yo', 'greetings'],
     response: "Hello! I'm BloomBot, your AI Skincare Assistant. I'm here to answer your questions about the Bloom Skin application. How can I help you today?",
     followUp: null,
   },
   about: {
     title: "About Bloom Skin",
-    keywords: ['what is bloom skin', 'about this app', 'purpose', 'goal'],
+    keywords: ['what is bloom skin', 'about this app', 'purpose', 'goal', 'what is this'],
     response: "Bloom Skin is an advanced web application that uses Artificial Intelligence to analyze your skin. You simply upload a photo, and our AI identifies common skin concerns like different types of acne, dark spots, and pigmentation. The main goal is to give you quick, accessible, and personalized insights into your skin's health.",
     followUp: "Would you like to know how to use it, or the technology behind it?",
   },
   how_to_use: {
     title: "How to Use",
     keywords: ['how to use', 'steps', 'what do i do', 'guide', 'how does it work'],
-    response: "Using Bloom Skin is a simple three-step process:\n\n1. Upload Your Photo: Go to our main analysis page and upload a clear, well-lit photo of your skin. Using your phone's camera is recommended for the best quality.\n\n2. Instant AI Analysis: Our AI model, MobileNetV2, will process your image in real-time to detect visible skin issues.\n\n3. View Your Results: You'll receive a personalized report detailing the findings, along with helpful care tips and suggestions for your skincare routine.",
-    followUp: null,
+    response: "Using Bloom Skin is a simple three-step process:\n\n1. **Upload Your Photo**: Go to our main analysis page and upload a clear, well-lit photo of your skin. Using your phone's camera is recommended for the best quality.\n\n2. **Instant AI Analysis**: Our AI model, MobileNetV2, will process your image in real-time to detect visible skin issues.\n\n3. **View Your Results**: You'll receive a personalized report detailing the findings, along with helpful care tips and suggestions for your skincare routine.",
+    followUp: "Would you like to know more about our photo analysis technology?",
   },
   photo_analysis: {
     title: "Photo Analysis",
     keywords: ['photo', 'image', 'upload', 'analyze', 'picture'],
     response: "While I can't analyze photos myself, our main application is built specifically for that! The image analysis tool uses a powerful AI to give you a detailed report. It's the core feature of our platform.",
-    followUp: null,
+    followUp: "Would you like to know more about the AI model we use?",
   },
   technology: {
     title: "Technology Stack",
@@ -64,33 +64,54 @@ const knowledgeBase = {
   },
   acne: {
     title: "About Acne",
-    keywords: ['acne', 'pimple', 'breakout'],
+    keywords: ['acne', 'pimple', 'breakout', 'zits'],
     response: "Acne is a common condition where pores become clogged with oil and dead skin cells. For general care, it's best to use a gentle cleanser and products labeled 'non-comedogenic' (meaning they won't clog pores). \n\nOver-the-counter ingredients like salicylic acid (good for clearing pores) and benzoyl peroxide (good for targeting bacteria) can be very effective. For a specific analysis of your acne type, the best tool is our photo analysis feature!",
-    followUp: null,
+    followUp: "Would you like to know about other skin concerns, like dark spots or dry skin?",
   },
   dark_spots: {
     title: "About Dark Spots",
-    keywords: ['dark spot', 'pigmentation', 'hyperpigmentation'],
+    keywords: ['dark spot', 'pigmentation', 'hyperpigmentation', 'sun spots'],
     response: "Dark spots, or hyperpigmentation, often occur after inflammation (like acne) or due to sun exposure. To help fade them, look for products with ingredients like Vitamin C, Niacinamide, or Retinoids. \n\nThe single most important step is daily use of a broad-spectrum sunscreen. Sun exposure can make dark spots much more prominent, so protection is key.",
-    followUp: null,
+    followUp: "Would you like to know about other skin concerns, like acne or dry skin?",
   },
   dry_skin: {
     title: "About Dry Skin",
-    keywords: ['dry skin', 'flaky', 'dehydrated'],
+    keywords: ['dry skin', 'flaky', 'dehydrated', 'tight skin'],
     response: "Dry skin lacks oil and moisture. The key is to provide hydration and support the skin's natural barrier. Seek out moisturizers with humectants like hyaluronic acid (which draws in water) and emollients like ceramides (which lock in moisture). Avoid harsh cleansers that can strip the skin.",
+    followUp: "Would you like to know about other skin concerns, like acne or dark spots?",
+  },
+  security: {
+    title: "Security and Privacy",
+    keywords: ['security', 'privacy', 'safe', 'secure', 'delete my data'],
+    response: "We take your privacy very seriously. Your uploaded photos are processed securely and are not shared with third parties. All data transmission is encrypted. If you have an account with us, you have the option to view and delete your analysis history at any time from your user profile.",
+    followUp: null,
+  },
+  cost: {
+    title: "Cost and Pricing",
+    keywords: ['cost', 'price', 'how much', 'is it free', 'subscription'],
+    response: "The basic skin analysis feature of Bloom Skin is completely free to use! We may introduce premium features in the future, but our core mission is to provide accessible skin health insights to everyone.",
     followUp: null,
   },
   fallback: {
     title: "Fallback",
     keywords: [],
     response: "I'm sorry, I don't have detailed information on that. I'm best at answering questions about how the Bloom Skin app works, its technology, and general advice for common skin concerns like acne or dark spots.",
-    followUp: null,
+    followUp: "You can try asking about 'how to use the app', its 'technology', or specific skin concerns like 'acne'.",
   }
 };
 
 const getBotResponse = (userInput, lastTopic) => {
   const lowerInput = userInput.toLowerCase().trim();
   if (['more', 'tell me more', 'details'].includes(lowerInput) && lastTopic?.followUp) {
+    // A simple way to handle "tell me more" is to find a relevant topic based on the follow-up text.
+    const followUpKeywords = lastTopic.followUp.toLowerCase().match(/\b(\w+)\b/g) || [];
+    for (const key in knowledgeBase) {
+        if (knowledgeBase[key].keywords.some(kw => followUpKeywords.includes(kw))) {
+            const nextTopic = knowledgeBase[key];
+            return { topic: nextTopic, response: nextTopic.response };
+        }
+    }
+    // If no direct keyword match, just show the follow-up text.
     return { topic: lastTopic, response: lastTopic.followUp };
   }
   for (const key in knowledgeBase) {
@@ -177,7 +198,7 @@ const MessageList = ({ messages, isTyping, quickReplies, onQuickReplySend }) => 
         {isTyping && <TypingIndicator />}
         <div ref={messagesEndRef} />
       </div>
-      {!isTyping && messages.length > 0 && (
+      {!isTyping && messages.length > 0 && messages[messages.length - 1].sender === 'bot' && (
         <div className="mt-2 flex gap-2 overflow-x-auto pb-2 animate-fade-in-up">
             {quickReplies.map(reply => <QuickReply key={reply} text={reply} onSend={onQuickReplySend} />)}
         </div>
@@ -250,7 +271,18 @@ const ChatBot = () => {
     }
   }, [inputValue, lastBotTopic]);
 
-  const quickReplies = ["How does it work?", "What tech is used?", "Tell me about acne"];
+  const getQuickReplies = () => {
+    if (lastBotTopic?.followUp) {
+        if (lastBotTopic.title === "Technology Stack") {
+            return ["Frontend", "Backend", "AI Model"];
+        }
+        if (lastBotTopic.title.includes("About")) {
+             return ["How does it work?", "Is it secure?", "What tech is used?"];
+        }
+    }
+    // Default quick replies
+    return ["How does it work?", "What tech is used?", "Tell me about acne"];
+  };
   
   return (
     <div className="fixed bottom-4 sm:bottom-8 right-4 sm:right-8 z-[1000]">
@@ -260,7 +292,7 @@ const ChatBot = () => {
           <MessageList 
             messages={messages} 
             isTyping={isTyping}
-            quickReplies={quickReplies}
+            quickReplies={getQuickReplies()}
             onQuickReplySend={handleSendMessage}
           />
           <ChatInput 

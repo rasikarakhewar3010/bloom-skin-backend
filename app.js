@@ -12,15 +12,18 @@ require("./config/passport");
 
 const app = express();
 
+// ✅ TRUST PROXY (REQUIRED FOR SECURE COOKIES ON RENDER)
+app.set('trust proxy', 1);
+
 // ------------------------------
 // ✅ Middleware
 // ------------------------------
 app.use(express.json());
 app.use(cookieParser());
 
-// ✅ CORS: allow frontend to send cookies
+// ✅ CORS: allow frontend to send cookies securely
 app.use(cors({
-  origin: process.env.FRONTEND_URL, // e.g. http://localhost:5173
+  origin: process.env.FRONTEND_URL || "https://bloom-skin-frontend.onrender.com",
   credentials: true,
 }));
 
@@ -36,21 +39,23 @@ app.use(
     }),
     cookie: {
       maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-      secure: process.env.NODE_ENV === "production", // true in prod only
+      secure: true,                    // ✅ required for HTTPS (Render)
       httpOnly: true,
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      sameSite: 'none',                // ✅ required for cross-origin cookies
     },
   })
 );
 
-// ✅ Passport
+// ✅ Passport Initialization
 app.use(passport.initialize());
 app.use(passport.session());
 
-// ✅ Debug Session (optional for dev)
+// ✅ Debug Session
 app.use((req, res, next) => {
+  console.log("============== SESSION DEBUG ==============");
   console.log("Session:", req.session);
   console.log("User:", req.user);
+  console.log("===========================================");
   next();
 });
 
@@ -66,8 +71,9 @@ app.use("/api/history", require("./routes/history.routes"));
 // ------------------------------
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
-    app.listen(process.env.PORT || 3000, () => {
-      console.log(`Server running at http://localhost:${process.env.PORT}`);
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running at https://bloom-skin-backend.onrender.com or on port ${PORT}`);
     });
   })
   .catch((err) => console.error("❌ DB connection error:", err));

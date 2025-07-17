@@ -2,10 +2,9 @@ const axios = require('axios');
 const FormData = require('form-data');
 const History = require('../models/history.model'); // Ensure this path is correct
 const https = require('https'); // ✅ <- THIS LINE FIXES THE ERROR
-const dotenv = require("dotenv");
 
 // Your Python/Flask service URL
-const PYTHON_API_URL = process.env.PYTHON_API_URL || 'http://127.0.0.1:5000/predict';
+const PYTHON_API_URL = 'https://bloom-skin-ml-3.onrender.com/predict'; 
 
 
 exports.handlePrediction = async (req, res) => {

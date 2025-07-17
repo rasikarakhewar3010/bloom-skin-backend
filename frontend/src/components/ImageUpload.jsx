@@ -1,32 +1,33 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 
-// --- Acne Info Data ---
+// --- Acne Info Data (Improved) ---
 const acneInfo = {
   "Blackheads": {
-    cause: "Blackheads occur when pores are clogged with oil and dead skin cells, exposed to air, and oxidize.",
-    prevention: "Cleanse regularly, avoid heavy oil-based products, and use salicylic acid or retinoids."
+    cause: "Blackheads form when hair follicles become clogged with excess oil (sebum) and dead skin cells. The top of the pore remains open, and exposure to air causes the clog to oxidize, turning it black.",
+    prevention: "Cleanse your face twice daily with a gentle cleanser, avoid heavy or greasy skincare and makeup, and consider using salicylic acid or retinoids to keep pores clear."
   },
   "Whiteheads": {
-    cause: "Whiteheads are blocked pores that stay closed at the surface, trapping oil and dead skin cells.",
-    prevention: "Gently exfoliate, avoid touching the face, and use non-comedogenic skincare."
+    cause: "Whiteheads occur when pores become blocked with oil and dead skin cells, but the top of the pore closes, creating a small, white bump under the skin.",
+    prevention: "Use non-comedogenic skincare, exfoliate regularly with gentle exfoliants to remove dead skin cells, and avoid touching or picking at your face to reduce blockages."
   },
   "Pustules": {
-    cause: "Pustules are inflamed pimples filled with pus caused by bacterial infection and clogged pores.",
-    prevention: "Maintain proper hygiene, avoid popping pimples, and use benzoyl peroxide or topical antibiotics."
+    cause: "Pustules are inflamed pimples with a white or yellow center filled with pus, often caused by bacterial infection in clogged pores and inflammation in the skin.",
+    prevention: "Maintain a consistent cleansing routine, avoid squeezing pimples to prevent scarring, and consider using benzoyl peroxide or topical treatments to reduce bacteria and inflammation."
   },
   "Papules": {
-    cause: "Papules are red, inflamed bumps without pus due to pore inflammation or bacterial growth.",
-    prevention: "Use anti-inflammatory skincare, avoid scrubbing, and consult a dermatologist if severe."
+    cause: "Papules are small, red, raised bumps caused by inflammation in clogged pores, often due to an overgrowth of acne-causing bacteria or irritation in the skin.",
+    prevention: "Use anti-inflammatory skincare with ingredients like niacinamide, avoid harsh scrubbing, and if persistent or severe, consult a dermatologist for targeted treatments."
   },
   "Cyst": {
-    cause: "Cystic acne forms deep under the skin when pores are clogged with oil, bacteria, and dead cells.",
-    prevention: "Consult a dermatologist, avoid self-treatment, and consider prescription medication."
+    cause: "Cystic acne develops when deep blockages of oil, bacteria, and dead skin cells cause infection and inflammation under the skin, resulting in large, painful cysts.",
+    prevention: "Avoid picking or pressing cysts, maintain a consistent skincare routine, and consult a dermatologist for prescription treatments such as oral medications or professional procedures."
   },
-  "Unknown": { // Added fallback
-    cause: "Could not confidently classify.",
-    prevention: "Please try again with a clearer, well-lit image focused on the area of concern. If issues persist, consult a dermatologist."
+  "Unknown": { // Fallback for unclassified images
+    cause: "The system could not confidently classify this skin condition due to unclear or low-quality input.",
+    prevention: "Please retake the photo in good lighting, focusing clearly on the affected area. If concerns continue, seek advice from a dermatologist for accurate diagnosis and care."
   }
 };
+
 
 // --- Constants ---
 const PREDICT_ENDPOINT = '/api/predict';

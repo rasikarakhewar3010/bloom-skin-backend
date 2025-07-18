@@ -5,7 +5,7 @@ import ScanIntro from './ScanIntro';
 import { StickyScrollRevealDemo } from './StickyScrollRevealDemo';
 import WhyChooseBloomSkin from './WhyChooseBloomSkin';
 import BloomSkinFooter from './BloomSkinFooter';
-import ChatBot from './chatbot';
+import ChatBot from './ChatBot';
 
 const HomePage = () => {
     return (

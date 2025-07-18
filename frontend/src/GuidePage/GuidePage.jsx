@@ -1,7 +1,7 @@
 import React from 'react';
 import Hero from './Hero';
 import { NavbarDemo } from '@/NavbarDemo';
-import { Steps } from './steps';
+import Steps from './Steps';
 import BloomSkinFooter from '@/HomePage/BloomSkinFooter';
 import ChatBot from '@/HomePage/ChatBot';
 import BloomSkinDosDonts from './BloomSkinDosDonts';

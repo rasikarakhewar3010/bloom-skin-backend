@@ -1,32 +1,37 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 
-// --- Acne Info Data (Improved) ---
+// --- Acne Info Data (Enhanced for Demo & Production) ---
 const acneInfo = {
   "Blackheads": {
-    cause: "Blackheads form when hair follicles become clogged with excess oil (sebum) and dead skin cells. The top of the pore remains open, and exposure to air causes the clog to oxidize, turning it black.",
-    prevention: "Cleanse your face twice daily with a gentle cleanser, avoid heavy or greasy skincare and makeup, and consider using salicylic acid or retinoids to keep pores clear."
+    cause: "Blackheads occur when pores become clogged with excess oil and dead skin, with the pore remaining open and turning black upon air exposure.",
+    prevention: "Cleanse your face twice daily, use non-comedogenic skincare, and consider salicylic acid or retinoids to keep pores clear."
   },
   "Whiteheads": {
-    cause: "Whiteheads occur when pores become blocked with oil and dead skin cells, but the top of the pore closes, creating a small, white bump under the skin.",
-    prevention: "Use non-comedogenic skincare, exfoliate regularly with gentle exfoliants to remove dead skin cells, and avoid touching or picking at your face to reduce blockages."
+    cause: "Whiteheads form when pores clogged with oil and dead skin close at the surface, creating small white bumps under the skin.",
+    prevention: "Use gentle exfoliation and non-comedogenic products to prevent clogging, and avoid touching your face unnecessarily."
   },
   "Pustules": {
-    cause: "Pustules are inflamed pimples with a white or yellow center filled with pus, often caused by bacterial infection in clogged pores and inflammation in the skin.",
-    prevention: "Maintain a consistent cleansing routine, avoid squeezing pimples to prevent scarring, and consider using benzoyl peroxide or topical treatments to reduce bacteria and inflammation."
+    cause: "Pustules are inflamed pimples with a white or yellow center filled with pus, typically from bacterial infection and inflammation in clogged pores.",
+    prevention: "Maintain consistent cleansing, avoid popping pimples, and consider benzoyl peroxide or topical treatments to reduce bacteria."
   },
   "Papules": {
-    cause: "Papules are small, red, raised bumps caused by inflammation in clogged pores, often due to an overgrowth of acne-causing bacteria or irritation in the skin.",
-    prevention: "Use anti-inflammatory skincare with ingredients like niacinamide, avoid harsh scrubbing, and if persistent or severe, consult a dermatologist for targeted treatments."
+    cause: "Papules are small, red, raised bumps resulting from inflammation in clogged pores, often due to acne-causing bacteria.",
+    prevention: "Use gentle, anti-inflammatory skincare with niacinamide, avoid harsh scrubbing, and consult a dermatologist if persistent."
   },
   "Cyst": {
-    cause: "Cystic acne develops when deep blockages of oil, bacteria, and dead skin cells cause infection and inflammation under the skin, resulting in large, painful cysts.",
-    prevention: "Avoid picking or pressing cysts, maintain a consistent skincare routine, and consult a dermatologist for prescription treatments such as oral medications or professional procedures."
+    cause: "Cystic acne involves deep infections under the skin due to clogged pores, bacteria, and inflammation, leading to large, painful cysts.",
+    prevention: "Avoid picking cysts, maintain a proper skincare routine, and seek dermatologist guidance for prescription treatments if needed."
   },
-  "Unknown": { // Fallback for unclassified images
-    cause: "The system could not confidently classify this skin condition due to unclear or low-quality input.",
-    prevention: "Please retake the photo in good lighting, focusing clearly on the affected area. If concerns continue, seek advice from a dermatologist for accurate diagnosis and care."
+  "Clear Skin": { // ✅ For graceful handling during demos
+    cause: "The system did not detect clear signs of acne in the analyzed area, suggesting generally healthy skin.",
+    prevention: "Maintain a balanced skincare routine, protect your skin with sunscreen, and monitor any changes. If concerns arise, consult a dermatologist for professional advice."
+  },
+  "Unknown": { // Fallback for low-quality images
+    cause: "The system could not confidently classify this condition due to unclear or low-quality input.",
+    prevention: "Retake the photo in good lighting, ensuring a clear view of the affected area, or consult a dermatologist for accurate evaluation."
   }
 };
+
 
 
 // --- Constants ---

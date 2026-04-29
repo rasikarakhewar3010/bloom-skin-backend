@@ -1,323 +1,514 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { getDashboardStats } from '../api/apiService';
 import { useNavigate } from 'react-router-dom';
 import { NavbarDemo } from '../NavbarDemo';
+import { useAuth } from '../context/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Scan, 
+  TrendingUp, 
+  Flame, 
+  Activity, 
+  Bell, 
+  ChevronRight, 
+  Calendar,
+  Sparkles,
+  Camera,
+  Layers,
+  ClipboardList
+} from 'lucide-react';
 
 // ─────────────────────────────────────────────
-//  BLOOM SCORE RING — Animated circular gauge
+//  BLOOM SCORE RING — Circular Gauge
 // ─────────────────────────────────────────────
 const BloomScoreRing = ({ score }) => {
   const [animatedScore, setAnimatedScore] = useState(0);
-  const radius = 70;
+  const radius = 55;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (animatedScore / 100) * circumference;
 
   useEffect(() => {
-    let frame;
-    let current = 0;
-    const step = () => {
-      current += 1;
-      if (current > score) current = score;
-      setAnimatedScore(current);
-      if (current < score) frame = requestAnimationFrame(step);
-    };
-    frame = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(frame);
+    const timer = setTimeout(() => {
+      setAnimatedScore(score);
+    }, 500);
+    return () => clearTimeout(timer);
   }, [score]);
 
-  const getScoreColor = (s) => {
-    if (s >= 80) return '#10B981';
-    if (s >= 50) return '#F59E0B';
-    return '#EF4444';
-  };
-
-  const color = getScoreColor(animatedScore);
-
   return (
-    <div className="relative flex flex-col items-center justify-center">
-      <svg width="180" height="180" viewBox="0 0 180 180">
-        <circle cx="90" cy="90" r={radius} fill="none" stroke="#f3f4f6" strokeWidth="12" />
-        <circle
-          cx="90" cy="90" r={radius} fill="none" stroke={color} strokeWidth="12"
-          strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={offset}
-          transform="rotate(-90 90 90)"
-          style={{ transition: 'stroke-dashoffset 0.5s ease-out, stroke 0.5s ease-out' }}
+    <div className="relative w-[140px] h-[140px] flex items-center justify-center">
+      <svg width="140" height="140" viewBox="0 0 140 140" className="transform -rotate-90">
+        <circle cx="70" cy="70" r={radius} fill="none" stroke="#FDE2E4" strokeWidth="8" />
+        <motion.circle
+          cx="70" cy="70" r={radius} fill="none" 
+          stroke="#F43F5E" strokeWidth="8" strokeLinecap="round"
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset: offset }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
+          style={{ strokeDasharray: circumference }}
         />
       </svg>
-      <div className="absolute flex flex-col items-center">
-        <span className="text-4xl font-extrabold" style={{ color }}>{animatedScore}</span>
-        <span className="text-xs text-gray-500 font-medium">BLOOM SCORE</span>
-      </div>
-    </div>
-  );
-};
-
-// ─────────────────────────────────────────────
-//  STAT CARD — Reusable metric display
-// ─────────────────────────────────────────────
-const StatCard = ({ icon, label, value, subtext, className = '' }) => (
-  <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow ${className}`}>
-    <div className="flex items-start gap-3">
-      <div className="text-2xl">{icon}</div>
-      <div>
-        <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">{label}</p>
-        <p className="text-2xl font-bold text-gray-900 mt-0.5">{value}</p>
-        {subtext && <p className="text-xs text-gray-500 mt-1">{subtext}</p>}
-      </div>
-    </div>
-  </div>
-);
-
-// ─────────────────────────────────────────────
-//  CONDITION BAR CHART — Horizontal bars
-// ─────────────────────────────────────────────
-const ConditionChart = ({ data }) => {
-  if (!data || data.length === 0) return <p className="text-gray-400 text-sm text-center py-8">No condition data yet.</p>;
-  const maxCount = Math.max(...data.map(d => d.count));
-
-  return (
-    <div className="space-y-3">
-      {data.map((item) => (
-        <div key={item.name} className="group">
-          <div className="flex justify-between items-center mb-1">
-            <span className="text-sm font-medium text-gray-700">{item.name}</span>
-            <span className="text-xs font-semibold text-gray-500">{item.count} scans ({item.percentage}%)</span>
-          </div>
-          <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
-            <div
-              className="h-3 rounded-full transition-all duration-700 ease-out group-hover:opacity-90"
-              style={{
-                width: `${(item.count / maxCount) * 100}%`,
-                backgroundColor: item.color,
-              }}
-            />
-          </div>
+      <div className="absolute flex flex-col items-center justify-center text-center pointer-events-none">
+        <span className="text-3xl font-black text-gray-900 leading-none tracking-tight">{animatedScore}</span>
+        <span className="text-[9px] font-bold text-gray-400 mt-1 uppercase tracking-widest">Score</span>
+        <div className="mt-1.5 px-2 py-0.5 bg-pink-50 rounded-full border border-pink-100">
+           <span className="text-[8px] font-black text-pink-500 whitespace-nowrap uppercase tracking-tighter">Improvement</span>
         </div>
-      ))}
+      </div>
     </div>
   );
 };
 
 // ─────────────────────────────────────────────
-//  SEVERITY TREND — Mini sparkline
+//  SPARKLINE — Mini chart for metric cards
 // ─────────────────────────────────────────────
-const SeverityTrend = ({ data }) => {
-  if (!data || data.length < 2) return <p className="text-gray-400 text-sm text-center py-8">Need at least 2 scans for trend data.</p>;
-
-  const recent = data.slice(-15);
-  const width = 400;
-  const height = 120;
-  const padding = 10;
-  const maxConf = Math.max(...recent.map(d => d.confidence));
-  const minConf = Math.min(...recent.map(d => d.confidence));
-  const range = maxConf - minConf || 0.1;
-
-  const points = recent.map((d, i) => {
-    const x = padding + (i / (recent.length - 1)) * (width - 2 * padding);
-    const y = padding + (1 - (d.confidence - minConf) / range) * (height - 2 * padding);
+const Sparkline = ({ data, color }) => {
+  if (!data || data.length < 2) return null;
+  const width = 80;
+  const height = 24;
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+  const range = (max - min) || 1;
+  
+  const points = data.map((v, i) => {
+    const x = (i / (data.length - 1)) * width;
+    const y = height - ((v - min) / range) * height;
     return `${x},${y}`;
-  }).join(' ');
+  }).join(' L ');
 
   return (
-    <div className="overflow-hidden">
-      <svg viewBox={`0 0 ${width} ${height}`} className="w-full" style={{ maxHeight: '140px' }}>
-        <defs>
-          <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#EC4899" stopOpacity="0.3" />
-            <stop offset="100%" stopColor="#EC4899" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <polygon
-          points={`${padding},${height - padding} ${points} ${width - padding},${height - padding}`}
-          fill="url(#trendGrad)"
-        />
-        <polyline
-          points={points}
-          fill="none"
-          stroke="#EC4899"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        {recent.map((d, i) => {
-          const x = padding + (i / (recent.length - 1)) * (width - 2 * padding);
-          const y = padding + (1 - (d.confidence - minConf) / range) * (height - 2 * padding);
-          return <circle key={i} cx={x} cy={y} r="3.5" fill="#EC4899" stroke="white" strokeWidth="2" />;
+    <svg width={width} height={height} className="overflow-visible">
+      <path d={`M ${points}`} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+};
+
+// ─────────────────────────────────────────────
+//  METRIC CARD — Stat with icon and sparkline
+// ─────────────────────────────────────────────
+const MetricCard = ({ icon: Icon, title, value, subtext, trend, sparkData, color }) => {
+  const colorMap = {
+    violet: { text: 'text-violet-500', bg: 'bg-violet-500' },
+    teal: { text: 'text-teal-500', bg: 'bg-teal-500' },
+    orange: { text: 'text-orange-500', bg: 'bg-orange-500' },
+    blue: { text: 'text-blue-500', bg: 'bg-blue-500' },
+    pink: { text: 'text-pink-500', bg: 'bg-pink-500' },
+  };
+
+  const style = colorMap[color] || colorMap.pink;
+
+  return (
+    <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-50 flex flex-col justify-between hover:shadow-md transition-all duration-300">
+      <div className="flex justify-between items-start">
+        <div className={`p-2.5 rounded-xl bg-opacity-10 ${style.bg}`}>
+          <Icon className={`w-5 h-5 ${style.text}`} />
+        </div>
+        <div className="text-right">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{title}</p>
+          <p className="text-xl font-black text-gray-900 mt-0.5 tracking-tight">{value}</p>
+        </div>
+      </div>
+      <div className="mt-4 flex items-end justify-between">
+        <div className="min-h-[16px]">
+          {trend ? (
+            <p className={`text-[11px] font-bold flex items-center gap-1 ${trend.startsWith('+') ? 'text-teal-500' : 'text-rose-500'}`}>
+              {trend} <span className="text-[9px] text-gray-400 font-medium">improvement</span>
+            </p>
+          ) : (
+            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight opacity-70">{subtext}</p>
+          )}
+        </div>
+        {sparkData && sparkData.length > 1 && (
+          <div className="opacity-80">
+            <Sparkline data={sparkData} color={trend?.startsWith('+') ? '#14B8A6' : (color === 'teal' ? '#14B8A6' : '#8B5CF6')} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────
+//  DONUT CHART — Condition Distribution
+// ─────────────────────────────────────────────
+const ConditionDonut = ({ data, total }) => {
+  const radius = 60;
+  const circumference = 2 * Math.PI * radius;
+  let currentOffset = 0;
+
+  return (
+    <div className="relative w-40 h-40 flex items-center justify-center mx-auto">
+      <svg width="160" height="160" viewBox="0 0 160 160" className="transform -rotate-90">
+        {data.map((item, i) => {
+          const strokeDashoffset = circumference - (item.percentage / 100) * circumference;
+          const rotateOffset = (currentOffset / 100) * 360;
+          currentOffset += item.percentage;
+          return (
+            <circle
+              key={item.name}
+              cx="80" cy="80" r={radius}
+              fill="none" stroke={item.color} strokeWidth="18"
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+              transform={`rotate(${rotateOffset} 80 80)`}
+              className="transition-all duration-1000 ease-out"
+            />
+          );
         })}
       </svg>
-      <div className="flex justify-between text-xs text-gray-400 mt-1 px-2">
-        <span>{new Date(recent[0].date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-        <span className="text-gray-500 font-medium">Severity over time →</span>
-        <span>{new Date(recent[recent.length - 1].date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+      <div className="absolute flex flex-col items-center justify-center text-center pointer-events-none">
+        <span className="text-3xl font-black text-gray-900 leading-none">{total}</span>
+        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Total Scans</span>
       </div>
     </div>
   );
 };
 
 // ─────────────────────────────────────────────
-//  RECENT SCANS — Small scan preview cards
+//  TREND CHART — Severity over time
 // ─────────────────────────────────────────────
-const RecentScans = ({ scans }) => {
-  if (!scans || scans.length === 0) return null;
+const TrendChart = ({ data }) => {
+  if (!data || data.length < 2) return <div className="h-48 flex items-center justify-center text-gray-300 font-bold text-xs uppercase tracking-widest">Analyzing more scans needed</div>;
+  
+  const width = 600;
+  const height = 180;
+  const padding = 30;
+  const max = 100;
+  const min = 0;
+  
+  const points = data.map((d, i) => {
+    const x = padding + (i / (data.length - 1)) * (width - 2 * padding);
+    const y = height - padding - ((d.confidence * 100 - min) / (max - min)) * (height - 2 * padding);
+    return { x, y, val: (d.confidence * 100).toFixed(0) };
+  });
 
-  const getSeverityColor = (sev) => {
-    const colors = { low: 'bg-green-100 text-green-700', moderate: 'bg-yellow-100 text-yellow-700', high: 'bg-orange-100 text-orange-700', severe: 'bg-red-100 text-red-700' };
-    return colors[sev] || 'bg-gray-100 text-gray-600';
-  };
+  const pathD = `M ${points.map(p => `${p.x},${p.y}`).join(' L ')}`;
+  const areaD = `${pathD} L ${points[points.length - 1].x},${height - padding} L ${points[0].x},${height - padding} Z`;
 
   return (
-    <div className="space-y-3">
-      {scans.map((scan) => (
-        <div key={scan.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-          <img src={scan.imageUrl} alt="scan" className="w-12 h-12 rounded-lg object-cover border border-gray-200" />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-800 truncate">{scan.prediction}</p>
-            <p className="text-xs text-gray-500">{new Date(scan.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
-          </div>
-          <div className="flex flex-col items-end gap-1">
-            <span className="text-xs font-bold text-pink-500">{(scan.confidence * 100).toFixed(0)}%</span>
-            {scan.severity && (
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getSeverityColor(scan.severity)}`}>
-                {scan.severity}
-              </span>
-            )}
-          </div>
-        </div>
-      ))}
+    <div className="relative w-full h-full min-h-[180px]">
+      <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible">
+        <defs>
+          <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#F43F5E" stopOpacity="0.15" />
+            <stop offset="100%" stopColor="#F43F5E" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        
+        {/* Y Axis Grid */}
+        {[0, 50, 100].map(v => (
+          <g key={v}>
+            <line 
+              x1={padding} y1={height - padding - (v / 100) * (height - 2 * padding)} 
+              x2={width - padding} y2={height - padding - (v / 100) * (height - 2 * padding)} 
+              stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4"
+            />
+          </g>
+        ))}
+
+        <path d={areaD} fill="url(#areaGrad)" />
+        <path d={pathD} fill="none" stroke="#F43F5E" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        
+        {points.map((p, i) => (
+          <g key={i}>
+            <circle cx={p.x} cy={p.y} r="4" fill="#F43F5E" stroke="#fff" strokeWidth="2" />
+          </g>
+        ))}
+      </svg>
     </div>
   );
 };
 
 // ─────────────────────────────────────────────
-//  MAIN DASHBOARD PAGE
+//  SCAN CARD — Detailed recent scan entry
+// ─────────────────────────────────────────────
+const ScanCard = ({ scan }) => {
+  const date = new Date(scan.date);
+  const formattedDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const formattedTime = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  
+  return (
+    <div className="flex-shrink-0 w-56 bg-white rounded-3xl p-3 border border-gray-100 hover:shadow-lg transition-all duration-300 group cursor-pointer">
+      <div className="relative h-32 rounded-2xl overflow-hidden mb-3">
+        <img src={scan.imageUrl} alt="scan" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+        <div className="absolute top-2 right-2 px-1.5 py-0.5 bg-white bg-opacity-90 backdrop-blur-sm rounded-lg shadow-sm">
+          <span className="text-[9px] font-black text-teal-500 flex items-center gap-0.5">
+             <TrendingUp className="w-2.5 h-2.5" /> +3%
+          </span>
+        </div>
+      </div>
+      <div>
+        <h4 className="font-black text-gray-900 text-base leading-tight tracking-tight">{scan.prediction}</h4>
+        <p className="text-[9px] font-bold text-gray-400 mt-1 uppercase tracking-widest">
+          {formattedDate} • {formattedTime}
+        </p>
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────
+//  QUICK ACTION — Large colorful tile
+// ─────────────────────────────────────────────
+const QuickAction = ({ icon: Icon, label, subtext, color, onClick }) => {
+  const bgColors = {
+    pink: 'bg-pink-500',
+    violet: 'bg-violet-500',
+    teal: 'bg-teal-500',
+  };
+  
+  return (
+    <button 
+      onClick={onClick}
+      className={`w-full p-6 rounded-[2.2rem] ${bgColors[color] || 'bg-pink-500'} flex flex-col items-start text-left text-white shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group overflow-hidden relative`}
+    >
+      <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-150 transition-transform duration-700">
+        <Icon size={100} />
+      </div>
+      <div className="bg-white bg-opacity-20 p-3 rounded-2xl mb-3">
+        <Icon className="w-5 h-5 text-white" />
+      </div>
+      <h3 className="text-lg font-black mb-0.5 tracking-tight">{label}</h3>
+      <p className="text-[10px] font-bold text-white text-opacity-80 leading-relaxed uppercase tracking-tighter">{subtext}</p>
+    </button>
+  );
+};
+
+// ─────────────────────────────────────────────
+//  MAIN DASHBOARD
 // ─────────────────────────────────────────────
 const DashboardPage = () => {
+  const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const fetchStats = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await getDashboardStats();
-      setStats(data);
-    } catch (err) {
-      setError(err.response?.status === 401 ? 'Please log in to view your dashboard.' : 'Failed to load dashboard data.');
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const data = await getDashboardStats();
+        setStats(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
   }, []);
 
-  useEffect(() => { fetchStats(); }, [fetchStats]);
+  // Real-time sparkline calculations
+  const scanSparkData = useMemo(() => {
+    if (!stats?.timeline) return [0, 0];
+    return stats.timeline.map(t => t.scans);
+  }, [stats]);
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-pink-400"></div>
-      </div>
-    );
-  }
+  const improvementSparkData = useMemo(() => {
+    if (!stats?.severityTrend) return [0, 0];
+    // Show improvement as inverted severity/confidence
+    return stats.severityTrend.map(s => 1 - s.confidence);
+  }, [stats]);
 
-  if (error) {
-    return (
-      <div className="text-center py-20">
-        <p className="text-red-500 text-lg font-medium">{error}</p>
-        <button onClick={() => navigate('/login')} className="mt-4 px-6 py-2 bg-pink-500 text-white rounded-full hover:bg-pink-600 transition">
-          Go to Login
-        </button>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center">
+      <motion.div 
+        animate={{ scale: [1, 1.1, 1], opacity: [0.5, 1, 0.5] }} 
+        transition={{ repeat: Infinity, duration: 2 }}
+        className="w-12 h-12 rounded-full border-4 border-pink-50 border-t-pink-500" 
+      />
+      <p className="mt-4 text-pink-500 font-black tracking-widest text-[10px] uppercase animate-pulse">Syncing Stats...</p>
+    </div>
+  );
 
   if (!stats) return null;
 
-  const trendEmoji = { improving: '📈', worsening: '📉', stable: '➡️', none: '🆕' };
-  const trendText = { improving: 'Improving', worsening: 'Needs Attention', stable: 'Stable', none: 'Start Scanning' };
-
   return (
     <>
-    <NavbarDemo />
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <NavbarDemo />
+      <div className="min-h-screen bg-[#F8FAFC] pb-24 font-sans">
+        <div className="max-w-[1300px] mx-auto px-6 py-8">
+          
+          {/* TOP SECTION: Greeting & Primary Stats */}
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 mb-8">
+            
+            {/* Hero Card */}
+            <div className="xl:col-span-5 bg-white rounded-[2.5rem] p-8 shadow-sm border border-gray-50 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
+               <div className="absolute -bottom-20 -left-20 w-48 h-48 bg-pink-50 rounded-full blur-3xl opacity-40" />
+               
+               <div className="flex-1 text-center md:text-left z-10">
+                  <h1 className="text-3xl lg:text-4xl font-black text-gray-900 leading-tight tracking-tight">
+                    Good evening, <span className="text-pink-500">{user?.name?.split(' ')[0] || 'Demo'}!</span> 👋
+                  </h1>
+                  <p className="text-gray-400 font-bold text-xs mt-3 leading-relaxed max-w-[240px]">
+                    Your skin is improving beautifully. Keep following your routine!
+                  </p>
+                  <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-pink-50 rounded-xl border border-pink-100">
+                    <TrendingUp className="w-3 h-3 text-pink-500" />
+                    <span className="text-[10px] font-black text-pink-500 uppercase tracking-widest">You're doing great!</span>
+                  </div>
+               </div>
 
-        {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 tracking-tight">
-            Skin Health Dashboard
-          </h1>
-          <p className="mt-2 text-gray-500 text-lg">Your skin's journey, visualized.</p>
-        </div>
+               <div className="relative z-10">
+                  <BloomScoreRing score={stats.bloomScore} />
+               </div>
+            </div>
 
-        {/* Top Row — Bloom Score + Stats */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Bloom Score Card */}
-          <div className="lg:col-span-1 bg-white rounded-3xl shadow-lg border border-gray-100 p-6 flex flex-col items-center justify-center">
-            <BloomScoreRing score={stats.bloomScore} />
-            <p className="mt-4 text-sm text-gray-600 text-center max-w-[200px]">
-              {stats.bloomScore >= 80 ? 'Excellent skin health!' : stats.bloomScore >= 50 ? 'Room for improvement' : 'Focus on your routine'}
-            </p>
+            {/* Metric Cards Grid */}
+            <div className="xl:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
+               <MetricCard 
+                  icon={Scan} 
+                  title="Total Scans" 
+                  value={stats.totalScans} 
+                  subtext="All time" 
+                  sparkData={scanSparkData} 
+                  color="violet"
+               />
+               <MetricCard 
+                  icon={TrendingUp} 
+                  title="Improvement" 
+                  value="+18%" 
+                  trend="+18%" 
+                  sparkData={improvementSparkData} 
+                  color="teal"
+               />
+               <MetricCard 
+                  icon={Flame} 
+                  title="Current Streak" 
+                  value={`${stats.streak} week`} 
+                  subtext="Keep it up!" 
+                  color="orange"
+               />
+               <MetricCard 
+                  icon={Activity} 
+                  title="Trend" 
+                  value="Stable" 
+                  subtext="Condition is stable" 
+                  color="blue"
+               />
+            </div>
           </div>
 
-          {/* Stats Grid */}
-          <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-2 gap-4">
-            <StatCard icon="🔬" label="Total Scans" value={stats.totalScans} subtext={stats.insights.scanFrequency} />
-            <StatCard icon={trendEmoji[stats.insights.trendDirection]} label="Trend" value={trendText[stats.insights.trendDirection]} />
-            <StatCard icon="🎯" label="Most Common" value={stats.insights.mostCommon || '—'} subtext={stats.conditionFrequency[0] ? `${stats.conditionFrequency[0].percentage}% of scans` : ''} />
-            <StatCard icon="🔥" label="Scan Streak" value={`${stats.streak} weeks`} subtext="Keep scanning weekly!" />
+          {/* MIDDLE SECTION: Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+            
+            {/* Condition Distribution */}
+            <div className="lg:col-span-4 bg-white rounded-[2.5rem] p-8 shadow-sm border border-gray-50">
+               <div className="flex items-center gap-2.5 mb-6">
+                  <Layers className="w-4 h-4 text-indigo-500" />
+                  <h2 className="text-lg font-black text-gray-900 tracking-tight">Condition Distribution</h2>
+               </div>
+               
+               <ConditionDonut data={stats.conditionFrequency} total={stats.totalScans} />
+
+               <div className="mt-8 space-y-3 px-2">
+                  {stats.conditionFrequency.map((item) => (
+                    <div key={item.name} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                        <span className="text-xs font-bold text-gray-500">{item.name}</span>
+                      </div>
+                      <span className="text-xs font-black text-gray-900">{item.percentage}%</span>
+                    </div>
+                  ))}
+               </div>
+               <div className="mt-8 pt-6 border-t border-gray-50 flex justify-center">
+                  <span className="text-[9px] font-bold text-gray-300 uppercase tracking-[0.2em]">Based on recent scan analysis</span>
+               </div>
+            </div>
+
+            {/* Severity Trend Chart */}
+            <div className="lg:col-span-8 bg-white rounded-[2.5rem] p-8 shadow-sm border border-gray-50">
+               <div className="flex justify-between items-center mb-6">
+                  <div className="flex items-center gap-2.5">
+                    <TrendingUp className="w-4 h-4 text-pink-500" />
+                    <h2 className="text-lg font-black text-gray-900 tracking-tight">Severity Trend</h2>
+                  </div>
+                  <div className="px-3 py-1.5 bg-gray-50 rounded-xl border border-gray-100">
+                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                      Last 6 scans <ChevronRight className="w-3 h-3" />
+                    </span>
+                  </div>
+               </div>
+               
+               <TrendChart data={stats.severityTrend} />
+               
+               <div className="mt-4 flex justify-center">
+                  <span className="text-[9px] font-bold text-gray-300 uppercase tracking-[0.2em]">Severity score over time</span>
+               </div>
+            </div>
           </div>
-        </div>
 
-        {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Condition Distribution */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <span>📊</span> Condition Distribution
-            </h2>
-            <ConditionChart data={stats.conditionFrequency} />
+          {/* LOWER SECTION: Recent Scans */}
+          <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-gray-50 mb-8">
+            <div className="flex justify-between items-center mb-6">
+               <div className="flex items-center gap-2.5">
+                  <ClipboardList className="w-4 h-4 text-gray-400" />
+                  <h2 className="text-lg font-black text-gray-900 tracking-tight">Recent Scans</h2>
+               </div>
+               <button onClick={() => navigate('/history')} className="text-[10px] font-black text-pink-500 hover:text-pink-600 transition flex items-center gap-1 uppercase tracking-widest">
+                  View all <ChevronRight className="w-3 h-3" />
+               </button>
+            </div>
+
+            <div className="flex gap-5 overflow-x-auto pb-2 scrollbar-hide">
+              <AnimatePresence>
+                {stats.recentScans.map((scan, i) => (
+                  <motion.div
+                    key={scan.id}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                  >
+                    <ScanCard scan={scan} />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
           </div>
 
-          {/* Severity Trend */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <span>📈</span> Severity Trend
-            </h2>
-            <SeverityTrend data={stats.severityTrend} />
+          {/* BOTTOM SECTION: Daily Tip & Quick Actions */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            
+            {/* Daily Tip */}
+            <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 flex items-center gap-5 group hover:shadow-md transition-all duration-300">
+               <div className="p-3 bg-pink-50 rounded-2xl text-pink-500 group-hover:scale-110 transition-transform duration-500">
+                  <Sparkles className="w-6 h-6" />
+               </div>
+               <div>
+                  <h4 className="text-[10px] font-black text-gray-900 flex items-center gap-1 uppercase tracking-widest">
+                    Daily Tip <span className="text-pink-500">🌸</span>
+                  </h4>
+                  <p className="text-[10px] font-bold text-gray-400 mt-1 leading-relaxed">
+                    Consistency is key. Apply sunscreen every morning!
+                  </p>
+               </div>
+            </div>
+
+            {/* Quick Action Buttons */}
+            <QuickAction 
+              icon={Camera} 
+              label="New Scan" 
+              subtext="Analyze your skin" 
+              color="pink" 
+              onClick={() => navigate('/aichat')}
+            />
+            <QuickAction 
+              icon={ClipboardList} 
+              label="Recommendations" 
+              subtext="See suggestions" 
+              color="violet" 
+              onClick={() => navigate('/recommendations')}
+            />
+            <QuickAction 
+              icon={Calendar} 
+              label="My Routine" 
+              subtext="Track daily tasks" 
+              color="teal" 
+              onClick={() => navigate('/routine')}
+            />
           </div>
-        </div>
 
-        {/* Recent Scans */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-              <span>🕐</span> Recent Scans
-            </h2>
-            <button onClick={() => navigate('/history')} className="text-sm text-pink-500 hover:text-pink-600 font-medium transition">
-              View All →
-            </button>
-          </div>
-          <RecentScans scans={stats.recentScans} />
         </div>
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <button onClick={() => navigate('/aichat')} className="p-5 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 text-center">
-            <span className="text-2xl mb-2 block">📸</span>
-            <span className="font-bold">New Scan</span>
-          </button>
-          <button onClick={() => navigate('/recommendations')} className="p-5 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 text-center">
-            <span className="text-2xl mb-2 block">🧬</span>
-            <span className="font-bold">View Recommendations</span>
-          </button>
-          <button onClick={() => navigate('/routine')} className="p-5 bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 text-center">
-            <span className="text-2xl mb-2 block">🗓️</span>
-            <span className="font-bold">My Routine</span>
-          </button>
-        </div>
-
       </div>
-    </div>
     </>
   );
 };

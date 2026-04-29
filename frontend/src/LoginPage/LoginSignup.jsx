@@ -42,8 +42,9 @@ const LoginSignup = () => {
       return;
     }
 
+    const baseUrl = import.meta.env.VITE_API_URL || "";
     setSubmitting(true);
-    const url = isLogin ? "/api/auth/login" : "/api/auth/register";
+    const url = isLogin ? `${baseUrl}/api/auth/login` : `${baseUrl}/api/auth/register`;
     const dataToSend = isLogin
       ? { email: form.email, password: form.password }
       : form;
@@ -73,8 +74,9 @@ const LoginSignup = () => {
   };
 
   const handleGoogleLogin = () => {
-    // Use relative URL — Vite proxy forwards /api/* to backend
-    window.open("/api/auth/google", "_self");
+    // Use full URL for production
+    const baseUrl = import.meta.env.VITE_API_URL || "";
+    window.open(`${baseUrl}/api/auth/google`, "_self");
   };
 
   // Check session on mount (e.g., after Google redirect)

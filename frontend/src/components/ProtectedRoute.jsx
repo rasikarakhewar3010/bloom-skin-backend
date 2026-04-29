@@ -1,5 +1,7 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useState } from 'react';
+import OnboardingFlow from './OnboardingFlow';
 
 /**
  * ProtectedRoute — Wraps private pages to redirect unauthenticated users.
@@ -7,7 +9,8 @@ import { useAuth } from '../context/AuthContext';
  * then either renders children or redirects to /login.
  */
 const ProtectedRoute = ({ children }) => {
-  const { isLoggedIn, loading } = useAuth();
+  const { isLoggedIn, loading, user } = useAuth();
+  const [showOnboarding, setShowOnboarding] = useState(true);
 
   // While verifying session with the server, show a minimal loader
   if (loading) {
@@ -26,8 +29,18 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
+  // Check if onboarding is needed
+  const needsOnboarding = user && (!user.skinProfile || !user.skinProfile.skinType);
+
   // User is authenticated — render the protected content
-  return children;
+  return (
+    <>
+      {needsOnboarding && showOnboarding && (
+        <OnboardingFlow onComplete={() => setShowOnboarding(false)} />
+      )}
+      {children}
+    </>
+  );
 };
 
 export default ProtectedRoute;

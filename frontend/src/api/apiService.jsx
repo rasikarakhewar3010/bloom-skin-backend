@@ -4,8 +4,8 @@ import axios from 'axios';
 // Create a pre-configured axios instance for all API calls.
 // The Vite proxy will handle forwarding /api requests to the Node.js backend.
 const api = axios.create({
-  baseURL: '/api',
-  withCredentials: true, // Always send session cookies
+  baseURL: import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : '/api',
+  withCredentials: true, 
 });
 
 // --- API Functions ---

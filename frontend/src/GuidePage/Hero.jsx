@@ -60,7 +60,7 @@ const Hero = () => {
           onMouseEnter={() => handleTextHover('subtitle')}
           onMouseLeave={handleTextLeave}
         >
-          Your journey to clearer, healthier skin starts here.
+          Master your skincare journey with Bloom Skin AI.
         </p>
 
         <h1

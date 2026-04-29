@@ -415,6 +415,19 @@ export default function ImageUpload() {
                                 </div>
                               </div>
                             )}
+                            {cameraActive && (
+                              <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center">
+                                {/* Face Guide Oval */}
+                                <div className="w-48 h-64 border-2 border-dashed border-white/70 rounded-[100px] mb-4 relative">
+                                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-black/50 text-white text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap">
+                                    Align Face Here
+                                  </div>
+                                </div>
+                                <p className="text-white/90 text-xs font-medium bg-black/40 px-3 py-1 rounded-full">
+                                  Tip: Stand facing a window for natural light.
+                                </p>
+                              </div>
+                            )}
                           </>
                         )}
                       </div>

@@ -10,8 +10,9 @@ export const AuthProvider = ({ children }) => {
 
   // Check actual session status on mount (not just localStorage)
   const checkAuth = useCallback(async () => {
+    const baseUrl = import.meta.env.VITE_API_URL || "";
     try {
-      const res = await axios.get("/api/auth/me", {
+      const res = await axios.get(`${baseUrl}/api/auth/me`, {
         withCredentials: true,
       });
       if (res.data?.user) {
@@ -44,8 +45,9 @@ export const AuthProvider = ({ children }) => {
   }, [checkAuth]);
 
   const logout = async () => {
+    const baseUrl = import.meta.env.VITE_API_URL || "";
     try {
-      await axios.get("/api/auth/logout", { withCredentials: true });
+      await axios.get(`${baseUrl}/api/auth/logout`, { withCredentials: true });
     } catch (err) {
 
     } finally {

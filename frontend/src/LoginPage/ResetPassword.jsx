@@ -40,8 +40,9 @@ const ResetPassword = () => {
     setSubmitting(true);
     setMessage({ text: "", type: "" });
 
+    const baseUrl = import.meta.env.VITE_API_URL || "";
     try {
-      const res = await axios.post(`/api/auth/reset-password/${token}`, { password }, {
+      const res = await axios.post(`${baseUrl}/api/auth/reset-password/${token}`, { password }, {
         withCredentials: true,
       });
       setMessage({ text: res.data.message, type: "success" });

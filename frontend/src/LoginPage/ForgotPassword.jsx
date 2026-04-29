@@ -19,8 +19,9 @@ const ForgotPassword = () => {
     setSubmitting(true);
     setMessage({ text: "", type: "" });
 
+    const baseUrl = import.meta.env.VITE_API_URL || "";
     try {
-      const res = await axios.post("/api/auth/forgot-password", { email: email.trim() }, {
+      const res = await axios.post(`${baseUrl}/api/auth/forgot-password`, { email: email.trim() }, {
         withCredentials: true,
       });
       setMessage({ text: res.data.message, type: "success" });

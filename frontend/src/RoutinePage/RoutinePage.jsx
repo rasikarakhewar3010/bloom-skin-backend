@@ -1,135 +1,133 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
 import { getRoutine } from '../api/apiService';
 import { useNavigate } from 'react-router-dom';
 import { NavbarDemo } from '../NavbarDemo';
+import { useAuth } from '../context/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // ─────────────────────────────────────────────
-//  ROUTINE STEP CARD
+//  ROUTINE STEP CARD (Boutique Style)
 // ─────────────────────────────────────────────
 const RoutineStepCard = ({ step, index }) => {
-  const typeIcons = {
-    Cleanser: '🧴', Exfoliant: '✨', Serum: '💧', Treatment: '💊',
-    'Spot Treatment': '🎯', Moisturizer: '🧊', Sunscreen: '☀️', Mask: '🎭',
-  };
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <div className="flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-pink-200 transition-all group">
-      {/* Step Number */}
-      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 text-white flex items-center justify-center text-sm font-bold shadow-sm">
+    <motion.div 
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.1 }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="bg-white border border-gray-100 rounded-[32px] p-6 shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col sm:flex-row items-center gap-6 group relative overflow-hidden cursor-pointer"
+    >
+      {/* Numbering Circle */}
+      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-pink-500 text-white flex items-center justify-center font-bold text-lg shadow-md group-hover:scale-110 transition-transform">
         {index + 1}
       </div>
 
-      {/* Icon */}
-      <div className="flex-shrink-0 w-10 h-10 bg-gray-50 group-hover:bg-pink-50 rounded-xl flex items-center justify-center text-xl transition-colors">
-        {typeIcons[step.type] || '💊'}
+      {/* Product Image Holder (Placeholder logic as before but cleaner) */}
+      <div className="flex-shrink-0 w-20 h-24 bg-gray-50 rounded-2xl flex items-center justify-center overflow-hidden p-2">
+        <img 
+          src={step.imageUrl || "https://cdn-icons-png.flaticon.com/512/3233/3233497.png"} 
+          alt={step.product}
+          className="max-h-full max-w-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-700"
+        />
       </div>
 
-      {/* Content */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-0.5">
-          <span className="text-xs font-bold text-pink-500 uppercase tracking-wider">{step.type}</span>
+      {/* Product Info */}
+      <div className="flex-1 text-center sm:text-left">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mb-2 justify-center sm:justify-start">
+          <span className="text-[10px] font-black text-pink-500 uppercase tracking-widest">{step.type}</span>
           {step.forCondition && (
-            <span className="text-xs text-gray-400">· for {step.forCondition}</span>
+            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">· for {step.forCondition}</span>
           )}
         </div>
-        <h4 className="font-bold text-gray-800 text-sm">{step.product}</h4>
-        <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
-          <span>🕐</span> {step.usage}
+        <h4 className="font-bold text-gray-900 text-lg mb-1 leading-tight group-hover:text-pink-600 transition-colors">
+          {step.product}
+        </h4>
+        <p className="text-[12px] text-gray-500 font-medium flex items-center justify-center sm:justify-start gap-1.5 uppercase tracking-tighter">
+          <span className="text-sm">🕐</span> {step.usage}
         </p>
-        {step.buyLink && (
-          <a
-            href={step.buyLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-pink-500 hover:text-pink-600 transition-colors"
-          >
-            🛒 Shop Best Price →
-          </a>
-        )}
       </div>
-    </div>
+
+      {/* Features Tags (Desktop Only) */}
+      <div className="hidden lg:flex flex-col gap-2 items-end">
+        <div className="flex items-center gap-2 text-xs text-teal-600 font-bold">
+          <span>✨</span> {step.type === 'Cleanser' ? 'Gentle' : 'Brightening'}
+        </div>
+        <div className="flex items-center gap-2 text-xs text-teal-600 font-bold">
+          <span>🛡️</span> pH Balanced
+        </div>
+      </div>
+
+      {/* CTA Button */}
+      <motion.a
+        href={step.buyLink}
+        target="_blank"
+        rel="noopener noreferrer"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        className="flex-shrink-0 px-6 py-3 bg-pink-50 text-pink-500 font-bold text-[11px] uppercase tracking-widest rounded-full hover:bg-pink-500 hover:text-white transition-all shadow-sm border border-pink-100"
+      >
+        Shop Best Price →
+      </motion.a>
+    </motion.div>
   );
 };
 
 // ─────────────────────────────────────────────
-//  CONFLICT ALERT
+//  CONFLICT CENTER
 // ─────────────────────────────────────────────
-const ConflictAlert = ({ conflicts }) => {
+const ConflictCenter = ({ conflicts }) => {
   if (!conflicts || conflicts.length === 0) return null;
 
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-8">
-      <h3 className="text-base font-bold text-amber-800 mb-3 flex items-center gap-2">
-        <span className="text-lg">⚠️</span> Ingredient Conflicts Detected
-      </h3>
-      <div className="space-y-2">
+    <div className="bg-amber-50/50 border border-amber-100 rounded-[32px] p-8 mb-10 relative overflow-hidden">
+      <div className="flex justify-between items-center mb-6 relative z-10">
+        <h3 className="text-lg font-black text-amber-900 flex items-center gap-3">
+          <span className="text-2xl">⚠️</span> Ingredient Conflicts Detected
+        </h3>
+        <button className="text-xs font-bold text-amber-700 underline flex items-center gap-1 hover:text-amber-900">
+          <span className="w-4 h-4 rounded-full border border-amber-400 flex items-center justify-center text-[8px] italic">i</span>
+          Learn More
+        </button>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
         {conflicts.map((conflict, i) => (
-          <div key={i} className="flex items-start gap-3 p-3 bg-amber-100/50 rounded-lg">
-            <span className="text-amber-500 mt-0.5 flex-shrink-0">⚡</span>
+          <div key={i} className="flex items-center gap-4 group">
+            <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-xl text-amber-500 group-hover:scale-110 transition-transform">
+              ⚡
+            </div>
             <div>
-              <p className="text-sm text-amber-900 font-medium">
-                <span className="font-bold">{conflict.a}</span> × <span className="font-bold">{conflict.b}</span>
+              <p className="text-[13px] text-amber-900 font-bold">
+                {conflict.a} <span className="text-amber-400 font-medium">×</span> {conflict.b}
               </p>
-              <p className="text-xs text-amber-700 mt-0.5">{conflict.warning}</p>
+              <p className="text-[10px] text-amber-700 font-medium opacity-80 leading-tight">
+                Can cause irritation or reduce effectiveness.
+              </p>
             </div>
           </div>
         ))}
       </div>
+
+      <div className="absolute top-0 right-0 w-64 h-64 bg-amber-100/30 blur-[100px] rounded-full -mr-32 -mt-32" />
     </div>
   );
 };
 
 // ─────────────────────────────────────────────
-//  ADAPTATION NOTE
+//  SIDEBAR COMPONENT
 // ─────────────────────────────────────────────
-const AdaptationNote = ({ note }) => {
-  if (!note) return null;
-
-  const isImproving = note.type === 'improving';
-  return (
-    <div className={`rounded-2xl p-5 mb-8 border ${
-      isImproving ? 'bg-green-50 border-green-200' : 'bg-orange-50 border-orange-200'
-    }`}>
-      <h3 className={`text-base font-bold mb-1 flex items-center gap-2 ${
-        isImproving ? 'text-green-800' : 'text-orange-800'
-      }`}>
-        <span className="text-lg">{isImproving ? '🎉' : '⚠️'}</span>
-        Routine Adaptation
-      </h3>
-      <p className={`text-sm ${isImproving ? 'text-green-700' : 'text-orange-700'}`}>
-        {note.message}
-      </p>
-    </div>
-  );
-};
-
-// ─────────────────────────────────────────────
-//  ACTIVE INGREDIENTS
-// ─────────────────────────────────────────────
-const ActiveIngredients = ({ ingredients }) => {
-  if (!ingredients || ingredients.length === 0) return null;
-
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-      <h3 className="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
-        <span>🧪</span> Active Ingredients in Your Routine
-      </h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {ingredients.map((ing, i) => (
-          <div key={i} className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg">
-            <div className="w-6 h-6 bg-purple-200 text-purple-700 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
-              {ing.priority}
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-purple-800">{ing.name}</p>
-              <p className="text-xs text-purple-600">{ing.benefit}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
+const SidebarSection = ({ title, icon, children, colorClass = "bg-white" }) => (
+  <div className={`${colorClass} border border-gray-100 rounded-[32px] p-6 shadow-sm mb-6`}>
+    <h3 className="text-[13px] font-black text-gray-900 uppercase tracking-widest mb-6 flex items-center gap-2">
+      <span className="text-xl">{icon}</span> {title}
+    </h3>
+    {children}
+  </div>
+);
 
 // ─────────────────────────────────────────────
 //  MAIN ROUTINE PAGE
@@ -138,6 +136,7 @@ const RoutinePage = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { user, setUser } = useAuth();
   const [timeOfDay, setTimeOfDay] = useState('morning');
   const navigate = useNavigate();
 
@@ -157,156 +156,255 @@ const RoutinePage = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[60vh]">
+      <div className="flex justify-center items-center min-h-screen bg-white">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-teal-400 mx-auto"></div>
-          <p className="mt-4 text-gray-500">Generating your personalized routine...</p>
+          <motion.div 
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            className="w-16 h-16 border-4 border-pink-100 border-t-pink-500 rounded-full mx-auto"
+          />
+          <p className="mt-6 text-gray-400 font-bold text-sm tracking-widest uppercase">Building Your Routine...</p>
         </div>
       </div>
     );
   }
 
-  if (error) {
-    return (
-      <div className="text-center py-20">
-        <p className="text-red-500 text-lg font-medium">{error}</p>
-        <button onClick={() => navigate('/login')} className="mt-4 px-6 py-2 bg-pink-500 text-white rounded-full hover:bg-pink-600 transition">Go to Login</button>
-      </div>
-    );
-  }
-
-  if (!data) return null;
+  if (error || !data) return (
+    <div className="text-center py-40">
+      <p className="text-gray-400 mb-6">{error || 'Session Expired'}</p>
+      <button onClick={() => navigate('/login')} className="px-8 py-3 bg-pink-500 text-white rounded-full font-bold">Back to Login</button>
+    </div>
+  );
 
   const { routine, basedOn } = data;
   const currentSteps = timeOfDay === 'morning' ? routine.morning : routine.night;
 
   return (
-    <>
-    <NavbarDemo />
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-emerald-50">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div className="min-h-screen bg-[#FDFDFD]">
+      <NavbarDemo />
 
-        {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 tracking-tight">
-            Your Skincare Routine
-          </h1>
-          <p className="mt-2 text-gray-500 text-lg">{basedOn.message}</p>
-        </div>
+      <main className="max-w-[1440px] mx-auto px-6 lg:px-12 py-10">
+        
+        {/* HERO SECTION */}
+        <section className="relative flex flex-col lg:flex-row items-center justify-between mb-16 pt-10">
+          <div className="lg:w-1/2 text-center lg:text-left z-10">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="inline-flex items-center gap-2 px-4 py-1.5 bg-orange-50 text-orange-600 rounded-full text-[11px] font-black uppercase tracking-widest mb-6 border border-orange-100 shadow-sm"
+            >
+              🔥 Streak: {user?.routineTracking?.streak || 0} Days
+            </motion.div>
+            
+            <h1 className="text-[42px] lg:text-[64px] font-black text-gray-900 leading-[1.1] mb-6 tracking-tight">
+              Your Skincare Routine
+            </h1>
+            
+            <p className="text-lg lg:text-xl text-gray-500 font-medium max-w-xl leading-relaxed">
+              Your routine is customized for <span className="text-pink-500 font-bold">{basedOn.conditions.join(' & ')} Skin</span>, 
+              based on your 3 most recent scans.
+            </p>
+          </div>
 
-        {/* Based On Info */}
-        {basedOn.latestScan && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-8">
-            <div className="flex flex-col sm:flex-row items-center gap-4">
-              <div className="flex-shrink-0 flex items-center gap-2">
-                {basedOn.conditions.map((c) => (
-                  <span key={c} className="text-sm bg-teal-100 text-teal-700 px-3 py-1 rounded-full font-semibold">{c}</span>
+          {/* Hero Image Block */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="lg:w-1/2 mt-12 lg:mt-0 flex justify-center relative"
+          >
+            <div className="absolute inset-0 bg-pink-100/30 blur-[120px] rounded-full scale-125" />
+            <img 
+              src="/images/Routine_image.png" 
+              alt="Routine Hero" 
+              className="relative w-full max-w-[500px] drop-shadow-2xl floating-animation"
+            />
+          </motion.div>
+        </section>
+
+        {/* DATA SUMMARY BAR */}
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
+          <div className="lg:col-span-2 bg-white border border-gray-100 rounded-[32px] p-8 flex flex-col md:flex-row items-center gap-8 shadow-sm">
+            <div className="flex gap-3">
+              {basedOn.conditions.map(c => (
+                <span key={c} className="px-5 py-2 bg-teal-50 text-teal-600 rounded-full font-bold text-xs uppercase tracking-widest border border-teal-100">
+                  {c}
+                </span>
+              ))}
+            </div>
+            <div className="flex-1 text-center md:text-left">
+              <p className="text-[11px] text-gray-400 font-bold uppercase tracking-widest mb-1">Latest Scan Intelligence</p>
+              <p className="text-sm text-gray-700 font-medium leading-relaxed">
+                Detected <span className="font-black text-gray-900">{basedOn.latestScan.prediction}</span> with{' '}
+                <span className="text-pink-500 font-black">{(basedOn.latestScan.confidence * 100).toFixed(0)}%</span> accuracy. 
+                Deep, painful nodules under the skin — severe inflammatory acne.
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-white border border-gray-100 rounded-[32px] p-8 flex items-center justify-center gap-4 shadow-sm text-center">
+            <div className="w-12 h-12 bg-pink-50 rounded-2xl flex items-center justify-center text-2xl">📅</div>
+            <div>
+              <p className="text-2xl font-black text-gray-900">3</p>
+              <p className="text-[10px] font-black text-pink-400 uppercase tracking-widest">Recent Scans</p>
+            </div>
+          </div>
+        </section>
+
+        {/* MAIN BODY GRID */}
+        <div className="flex flex-col lg:flex-row gap-12">
+          
+          {/* Left Column (Routine) */}
+          <div className="flex-1">
+            
+            <ConflictCenter conflicts={routine.conflicts} />
+
+            {/* PREMIUM ANIMATED TOGGLE */}
+            <div className="flex justify-center mb-10">
+              <div className="bg-gray-100/80 backdrop-blur-md rounded-full p-1.5 flex relative w-full max-w-[320px] shadow-inner border border-gray-200/50">
+                {/* Sliding Background Pill */}
+                <motion.div
+                  className={`absolute top-1.5 bottom-1.5 rounded-full shadow-lg z-0 ${
+                    timeOfDay === 'morning' 
+                      ? 'bg-gradient-to-r from-teal-400 to-emerald-500' 
+                      : 'bg-gradient-to-r from-indigo-500 to-purple-600'
+                  }`}
+                  initial={false}
+                  animate={{
+                    x: timeOfDay === 'morning' ? 0 : '100%',
+                    width: '50%'
+                  }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 400,
+                    damping: 30
+                  }}
+                  style={{
+                    left: '1.5px',
+                    right: 'auto',
+                    width: 'calc(50% - 3px)'
+                  }}
+                />
+
+                <button
+                  onClick={() => setTimeOfDay('morning')}
+                  className={`flex-1 py-3.5 rounded-full text-[13px] font-black uppercase tracking-widest transition-colors duration-300 cursor-pointer flex items-center justify-center gap-2 relative z-10 ${
+                    timeOfDay === 'morning' ? 'text-white' : 'text-gray-400 hover:text-gray-600'
+                  }`}
+                >
+                  <motion.span 
+                    animate={{ scale: timeOfDay === 'morning' ? 1.2 : 1, rotate: timeOfDay === 'morning' ? 0 : -20 }}
+                    className="text-lg"
+                  >
+                    ☀️
+                  </motion.span>
+                  Morning
+                </button>
+
+                <button
+                  onClick={() => setTimeOfDay('night')}
+                  className={`flex-1 py-3.5 rounded-full text-[13px] font-black uppercase tracking-widest transition-colors duration-300 cursor-pointer flex items-center justify-center gap-2 relative z-10 ${
+                    timeOfDay === 'night' ? 'text-white' : 'text-gray-400 hover:text-gray-600'
+                  }`}
+                >
+                  <motion.span 
+                    animate={{ scale: timeOfDay === 'night' ? 1.2 : 1, rotate: timeOfDay === 'night' ? 0 : 20 }}
+                    className="text-lg"
+                  >
+                    🌙
+                  </motion.span>
+                  Night
+                </button>
+              </div>
+            </div>
+
+            {/* ROUTINE LIST */}
+            <div className="space-y-6">
+              <AnimatePresence mode="wait">
+                <motion.div 
+                  key={timeOfDay}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="space-y-6"
+                >
+                  {currentSteps.map((step, i) => (
+                    <RoutineStepCard key={i} step={step} index={i} />
+                  ))}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* Right Column (Sidebar) */}
+          <aside className="lg:w-[380px]">
+            <SidebarSection title="Active Ingredients" icon="🔬" colorClass="bg-white">
+              <div className="space-y-4">
+                {routine.activeIngredients?.map((ing, i) => (
+                  <div key={i} className="flex items-center justify-between group">
+                    <div className="flex items-center gap-4">
+                      <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-500 flex items-center justify-center font-black text-xs">
+                        {ing.priority}
+                      </div>
+                      <div>
+                        <p className="text-[13px] font-bold text-gray-800">{ing.name}</p>
+                        <p className="text-[10px] text-gray-400 font-medium">{ing.benefit.split('—')[0]}</p>
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
-              <div className="text-center sm:text-left flex-1">
-                <p className="text-sm text-gray-600">
-                  Latest scan: <span className="font-semibold text-gray-800">{basedOn.latestScan.prediction}</span> at{' '}
-                  <span className="font-semibold text-pink-500">{(basedOn.latestScan.confidence * 100).toFixed(0)}%</span> confidence
-                </p>
-                {basedOn.latestScan.description && (
-                  <p className="text-xs text-gray-500 mt-1">{basedOn.latestScan.description}</p>
-                )}
+            </SidebarSection>
+
+            <SidebarSection title="Avoid These Ingredients" icon="🚫" colorClass="bg-red-50/50">
+              <div className="space-y-3">
+                {routine.avoidIngredients?.map((ing, i) => (
+                  <div key={i} className="flex items-center gap-3 p-3 bg-white/50 border border-red-100 rounded-2xl group hover:scale-105 transition-all cursor-pointer">
+                    <span className="text-red-400">⚠️</span>
+                    <span className="text-[12px] font-bold text-red-700">{ing}</span>
+                  </div>
+                ))}
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* Adaptation Note */}
-        <AdaptationNote note={routine.adaptationNote} />
-
-        {/* Conflict Alerts */}
-        <ConflictAlert conflicts={routine.conflicts} />
-
-        {/* AM / PM Toggle */}
-        <div className="flex justify-center mb-8">
-          <div className="bg-gray-100 rounded-full p-1 flex shadow-inner">
-            <button
-              onClick={() => setTimeOfDay('morning')}
-              className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all cursor-pointer ${
-                timeOfDay === 'morning'
-                  ? 'bg-gradient-to-r from-amber-400 to-orange-400 text-white shadow-md'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              ☀️ Morning
-            </button>
-            <button
-              onClick={() => setTimeOfDay('night')}
-              className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all cursor-pointer ${
-                timeOfDay === 'night'
-                  ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              🌙 Night
-            </button>
-          </div>
+              <p className="text-[10px] text-red-400 font-medium mt-6 leading-relaxed">
+                DIY remedies like toothpaste or lemon can cause severe burns on inflamed skin.
+              </p>
+            </SidebarSection>
+          </aside>
         </div>
 
-        {/* Routine Steps */}
-        <div className="space-y-3 mb-8">
-          {currentSteps && currentSteps.length > 0 ? (
-            currentSteps.map((step, i) => (
-              <RoutineStepCard key={i} step={step} index={i} />
-            ))
-          ) : (
-            <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-gray-200">
-              <p className="text-gray-400">No specific steps for this time. Complete a scan for personalized routine.</p>
-            </div>
-          )}
-        </div>
-
-        {/* Weekly Extras */}
-        {routine.weekly && routine.weekly.length > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8">
-            <h3 className="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <span>📅</span> Weekly Treatments
-            </h3>
-            <div className="space-y-3">
-              {routine.weekly.map((step, i) => (
-                <RoutineStepCard key={i} step={step} index={i} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Active Ingredients */}
-        <div className="mb-8">
-          <ActiveIngredients ingredients={routine.activeIngredients} />
-        </div>
-
-        {/* Avoid Section */}
-        {routine.avoidIngredients && routine.avoidIngredients.length > 0 && (
-          <div className="bg-red-50 border border-red-200 rounded-2xl p-5 mb-8">
-            <h3 className="text-base font-bold text-red-700 mb-3 flex items-center gap-2">
-              <span>🚫</span> Avoid These Ingredients
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {routine.avoidIngredients.map((ing, i) => (
-                <span key={i} className="text-sm bg-red-100 text-red-700 px-3 py-1 rounded-full font-medium">{ing}</span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Navigation */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <button onClick={() => navigate('/aichat')} className="px-8 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5">
+        {/* BOTTOM ACTIONS */}
+        <div className="mt-20 flex flex-col md:flex-row items-center justify-center gap-6">
+          <motion.button 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate('/aichat')}
+            className="w-full md:w-auto px-12 py-4 bg-pink-500 text-white font-black uppercase tracking-widest text-sm rounded-full shadow-2xl hover:bg-pink-600 flex items-center justify-center gap-3"
+          >
             📸 New Scan
-          </button>
-          <button onClick={() => navigate('/recommendations')} className="px-8 py-3 bg-white text-gray-700 font-bold rounded-full shadow border border-gray-200 hover:bg-gray-50 transition-all">
-            🧬 View Recommendations
-          </button>
+          </motion.button>
+          <motion.button 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate('/recommendations')}
+            className="w-full md:w-auto px-12 py-4 bg-white text-gray-800 font-black uppercase tracking-widest text-sm rounded-full shadow-xl border border-gray-100 hover:bg-gray-50 flex items-center justify-center gap-3"
+          >
+            ✨ View Recommendations
+          </motion.button>
         </div>
-      </div>
+      </main>
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        .floating-animation {
+          animation: floating 3s ease-in-out infinite;
+        }
+        @keyframes floating {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-15px); }
+          100% { transform: translateY(0px); }
+        }
+      `}} />
     </div>
-    </>
   );
 };
 
 export default RoutinePage;
+

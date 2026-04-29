@@ -6,7 +6,27 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss(),],
+  plugins: [react(), tailwindcss()],
+  
+  build: {
+    // Enable code splitting by page
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-motion': ['framer-motion'],
+          'vendor-icons': ['lucide-react', 'react-icons'],
+        }
+      }
+    },
+    // Enable gzip-level compression hints
+    chunkSizeWarningLimit: 500,
+    // Minify with esbuild (faster than terser)
+    minify: 'esbuild',
+    // Generate source maps for debugging (optional)
+    sourcemap: false,
+  },
+
   server: {
     proxy: {
       // This will proxy any request starting with /api to your Node.js backend

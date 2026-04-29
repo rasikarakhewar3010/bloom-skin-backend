@@ -3,7 +3,6 @@ import Hero from './Hero';
 import { NavbarDemo } from '@/NavbarDemo';
 import Steps from './Steps';
 import BloomSkinFooter from '@/HomePage/BloomSkinFooter';
-import ChatBot from '@/HomePage/ChatBot';
 import BloomSkinDosDonts from './BloomSkinDosDonts';
 
 const GuidePage = () => {
@@ -14,8 +13,6 @@ const GuidePage = () => {
             <Steps />
             <BloomSkinDosDonts />
             <BloomSkinFooter />
-            <ChatBot />
-
         </>
     );
 };

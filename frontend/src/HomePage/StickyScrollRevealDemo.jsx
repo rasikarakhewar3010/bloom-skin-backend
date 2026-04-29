@@ -12,6 +12,7 @@ const content = [
         <img
           src="https://mamaearth.in/blog/wp-content/uploads/2023/03/unnamed-11.webp"
           className="h-full w-full object-cover"
+          loading="lazy"
           alt="Acne treatment illustration"
         />
       </div>
@@ -26,6 +27,7 @@ const content = [
         <img
           src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSNqllZva2-zhe6v8_IpVXVLDIXFKqs_OqThns7bQI2j4T4REwB-aVURSeYSaQlYn8z65s&usqp=CAU"
           className="h-full w-full object-cover"
+          loading="lazy"
           alt="Hyperpigmentation treatment illustration"
         />
       </div>
@@ -40,6 +42,7 @@ const content = [
         <img
           src="/images/blackh.avif"
           className="h-full w-full object-cover"
+          loading="lazy"
           alt="Blackhead treatment illustration"
         />
       </div>
@@ -54,6 +57,7 @@ const content = [
         <img
           src="https://img.bebeautiful.in/www-bebeautiful-in/Treat-dehydrated%20-skin-to-reveal-the-flawless-you_mobilehome.jpg"
           className="h-full w-full object-cover"
+          loading="lazy"
           alt="Dry skin treatment illustration"
         />
       </div>

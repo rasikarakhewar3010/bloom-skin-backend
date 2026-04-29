@@ -1,59 +1,116 @@
 const axios = require('axios');
 const FormData = require('form-data');
-const History = require('../models/history.model'); // Ensure this path is correct
-const https = require('https'); // ✅ <- THIS LINE FIXES THE ERROR
+const History = require('../models/history.model');
+const https = require('https');
 
-// Your Python/Flask service URL
-const PYTHON_API_URL = 'http://127.0.0.1:5000/predict'; 
+// Use environment variable for ML service URL with fallback
+const PYTHON_API_URL = process.env.ML_API_URL
+  ? `${process.env.ML_API_URL}/predict`
+  : 'http://127.0.0.1:5000/predict';
 
+/**
+ * Compute severity level from confidence score.
+ * Higher confidence in a skin condition = higher severity.
+ */
+const computeSeverity = (confidence, prediction) => {
+  if (prediction === 'Clear Skin' || prediction === 'Invalid Image') {
+    return '';
+  }
+  if (confidence >= 0.95) return 'severe';
+  if (confidence >= 0.90) return 'high';
+  if (confidence >= 0.80) return 'moderate';
+  return 'low';
+};
 
+/**
+ * Generate tags based on the prediction class.
+ */
+const generateTags = (prediction) => {
+  const tagMap = {
+    'Blackheads': ['comedonal', 'non-inflammatory', 'mild'],
+    'Whiteheads': ['comedonal', 'non-inflammatory', 'mild'],
+    'Papules': ['inflammatory', 'moderate'],
+    'Pustules': ['inflammatory', 'bacterial', 'moderate'],
+    'Cyst': ['inflammatory', 'severe', 'deep-tissue'],
+    'Clear Skin': ['healthy'],
+    'Invalid Image': ['invalid'],
+  };
+  return tagMap[prediction] || [];
+};
+
+// @desc    Handle image prediction: Upload → Cloudinary → Flask ML → Save to History
+// @route   POST /api/predict
 exports.handlePrediction = async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'Image file is required.' });
   }
 
   try {
-    const imageUrl = req.file.path;
-    console.log(`Image uploaded to Cloudinary: ${imageUrl}`);
+    let finalImageUrl = req.file.path;
+    let imageBuffer;
+    const fs = require('fs');
 
-    // Step 1: Download the image from Cloudinary
-    const imageResponse = await axios.get(imageUrl, {
-      responseType: 'arraybuffer',
-      httpsAgent: new https.Agent({ rejectUnauthorized: false }) // for self-signed certs (optional)
-    });
+    if (finalImageUrl.startsWith('http')) {
+      // It's a Cloudinary URL
 
-    // Step 2: Create form and send to Python
+      const imageResponse = await axios.get(finalImageUrl, {
+        responseType: 'arraybuffer',
+        httpsAgent: new https.Agent({ rejectUnauthorized: false })
+      });
+      imageBuffer = imageResponse.data;
+    } else {
+      // It's a local file path
+
+      imageBuffer = fs.readFileSync(finalImageUrl);
+      // Convert local path to a URL that the frontend can access
+      const port = process.env.PORT || 3000;
+      finalImageUrl = `http://localhost:${port}/uploads/${req.file.filename}`;
+    }
+
+    // Step 2: Create form and send to Python ML service
     const formData = new FormData();
-    formData.append('image', imageResponse.data, {
-      filename: 'image.jpg',
-      contentType: 'image/jpeg',
+    formData.append('image', imageBuffer, {
+      filename: req.file.originalname || 'image.jpg',
+      contentType: req.file.mimetype || 'image/jpeg',
     });
 
-    console.log('Forwarding image to Python ML service...');
+
     const predictionResponse = await axios.post(PYTHON_API_URL, formData, {
       headers: { ...formData.getHeaders() },
+      timeout: 30000, // 30 second timeout for ML service
     });
 
     const { class: prediction, confidence, info } = predictionResponse.data;
 
+    // Step 3: Save to history with enhanced fields
     const newHistoryItem = new History({
       user: req.user.id,
-      imageUrl: imageUrl,
+      imageUrl: finalImageUrl,
       prediction: prediction,
       confidence: confidence,
       info: info,
+      severity: computeSeverity(confidence, prediction),
+      tags: generateTags(prediction),
     });
 
     await newHistoryItem.save();
-    console.log('Prediction saved to user history.');
 
-    res.json(predictionResponse.data);
+
+    // Return prediction result along with enhanced data
+    res.json({
+      ...predictionResponse.data,
+      severity: newHistoryItem.severity,
+      tags: newHistoryItem.tags,
+    });
 
   } catch (error) {
-    console.error('An error occurred during the prediction process:', error.message);
+
     if (error.response) {
-      console.error('Error from Python service:', error.response.data);
+
       return res.status(error.response.status).json(error.response.data);
+    }
+    if (error.code === 'ECONNREFUSED') {
+      return res.status(503).json({ error: 'AI analysis service is currently unavailable. Please try again later.' });
     }
     res.status(500).json({ error: 'Internal server error during prediction.' });
   }

@@ -2,14 +2,15 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FcGoogle } from "react-icons/fc";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext"; // ✅ Auth context
+import { useAuth } from "../context/AuthContext";
 
 const LoginSignup = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [flash, setFlash] = useState({ message: "", type: "" });
+  const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
-  const { setIsLoggedIn } = useAuth(); // ✅ Context function
+  const { isLoggedIn, setIsLoggedIn, setUser, checkAuth } = useAuth();
 
   const toggle = () => {
     setIsLogin(!isLogin);
@@ -31,13 +32,22 @@ const LoginSignup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitting) return;
+
+    // Client-side validation
+    if (!form.email || !form.password || (!isLogin && !form.name)) {
+      showFlash("Please fill in all required fields.", "error");
+      return;
+    }
+
+    setSubmitting(true);
     const url = isLogin ? "/api/auth/login" : "/api/auth/register";
     const dataToSend = isLogin
       ? { email: form.email, password: form.password }
       : form;
 
     try {
-      const res = await axios.post(`http://localhost:3000${url}`, dataToSend, {
+      const res = await axios.post(url, dataToSend, {
         withCredentials: true,
       });
       showFlash(`${isLogin ? "Login" : "Signup"} Successful`, "success");
@@ -45,36 +55,45 @@ const LoginSignup = () => {
       localStorage.setItem("isLoggedIn", "true");
       setIsLoggedIn(true);
 
+      // Store user data if returned
+      if (res.data?.user) {
+        setUser(res.data.user);
+      }
+
       setTimeout(() => {
         navigate("/");
       }, 1000);
     } catch (err) {
       showFlash(err.response?.data?.message || err.message, "error");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleGoogleLogin = () => {
-    window.open("http://localhost:3000/api/auth/google", "_self");
+    // Use relative URL — Vite proxy forwards /api/* to backend
+    window.open("/api/auth/google", "_self");
   };
 
-  // ✅ Check session after Google login
+  // Check session on mount (e.g., after Google redirect)
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const res = await axios.get("http://localhost:3000/api/auth/me", {
-          withCredentials: true,
-        });
-        if (res.data && res.data._id) {
-          localStorage.setItem("isLoggedIn", "true");
-          setIsLoggedIn(true);
-          navigate("/");
-        }
-      } catch (err) {
-        console.log("User not logged in via session");
-      }
-    };
-    checkAuth();
-  }, [setIsLoggedIn, navigate]);
+    if (isLoggedIn) {
+      navigate("/");
+      return;
+    }
+
+    // Verify session with server
+    checkAuth().then(() => {
+      // checkAuth updates isLoggedIn state internally
+    });
+  }, []);
+
+  // Redirect when login state changes
+  useEffect(() => {
+    if (isLoggedIn) {
+      navigate("/");
+    }
+  }, [isLoggedIn, navigate]);
 
   
   return (
@@ -128,9 +147,10 @@ const LoginSignup = () => {
           />
           <button
             type="submit"
-            className="w-full bg-pink-500 text-white py-2 rounded-md hover:bg-pink-600 transition"
+            disabled={submitting}
+            className="w-full bg-pink-500 text-white py-2 rounded-md hover:bg-pink-600 transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {isLogin ? "Login" : "Sign Up"}
+            {submitting ? "Please wait..." : isLogin ? "Login" : "Sign Up"}
           </button>
         </form>
 

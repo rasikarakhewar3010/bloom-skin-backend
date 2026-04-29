@@ -264,7 +264,7 @@ const ChatBot = () => {
       setMessages(prev => [...prev, { sender: 'bot', content: response }]);
       setLastBotTopic(topic);
     } catch (err) {
-      console.error("Error sending message:", err);
+
       setMessages(prev => [...prev, { sender: 'bot', content: "I'm having a little trouble right now. Please try again later." }]);
     } finally {
       setIsTyping(false);

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // --- Acne Info Data (Enhanced for Demo & Production) ---
 const acneInfo = {
@@ -40,6 +41,7 @@ const MAX_FILE_SIZE_MB = 5;
 
 // --- Component ---
 export default function ImageUpload() {
+  const navigate = useNavigate();
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
   const [result, setResult] = useState(null);
@@ -141,16 +143,10 @@ export default function ImageUpload() {
     const formData = new FormData();
     formData.append('image', image);
 
-    const headers = {};
-    const token = localStorage.getItem('token');
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
     try {
       const res = await fetch(PREDICT_ENDPOINT, {
         method: 'POST',
-        headers: headers,
+        credentials: 'include', // Send session cookies for auth
         body: formData,
       });
 
@@ -170,7 +166,7 @@ export default function ImageUpload() {
       }
 
     } catch (err) {
-      console.error('Prediction failed:', err);
+
       setError(err.message || 'Analysis failed. Please try again.');
     } finally {
       setLoading(false);
@@ -189,7 +185,7 @@ export default function ImageUpload() {
       if (videoRef.current) videoRef.current.srcObject = stream;
       streamRef.current = stream;
     } catch (err) {
-      console.error("Camera access error:", err);
+
       let message = "Could not access camera.";
       if (err.name === 'NotAllowedError') message = "Camera access denied. Please check browser permissions.";
       if (err.name === 'NotFoundError') message = "No camera found on this device.";
@@ -510,7 +506,15 @@ export default function ImageUpload() {
                       <p className="text-sm text-gray-700 leading-relaxed">{details.prevention}</p>
                     </div>
                   </div>
-                  <div className="mt-auto pt-4 ">
+                  <div className="mt-auto pt-4 space-y-4">
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <button onClick={() => navigate('/recommendations')} className="flex-1 py-2.5 bg-pink-50 text-pink-700 border border-pink-200 rounded-xl font-bold hover:bg-pink-100 transition-colors">
+                        🧬 View Analysis
+                      </button>
+                      <button onClick={() => navigate('/routine')} className="flex-1 py-2.5 bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded-xl font-bold hover:shadow-lg hover:-translate-y-0.5 transition-all">
+                        🗓️ Get Routine
+                      </button>
+                    </div>
                     <p className="text-xs text-gray-500 italic leading-snug text-center">
                       Disclaimer: AI analysis is informational and not a substitute for professional medical advice.
                     </p>

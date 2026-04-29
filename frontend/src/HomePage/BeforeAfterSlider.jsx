@@ -41,6 +41,7 @@ const BeforeAfterSlider = ({ beforeImage, afterImage, width = '100%', height = '
       <img
         src={afterImage}
         alt="After"
+        loading="lazy"
         style={{
           position: 'absolute',
           top: 0,
@@ -55,6 +56,7 @@ const BeforeAfterSlider = ({ beforeImage, afterImage, width = '100%', height = '
       <img
         src={beforeImage}
         alt="Before"
+        loading="lazy"
         style={{
           position: 'absolute',
           top: 0,

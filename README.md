@@ -1,4 +1,4 @@
-# Bloom Skin 🌸
+# BloomSkin 🌸 — Your AI-Powered Dermatologist
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![React](https://img.shields.io/badge/frontend-React-61DAFB.svg?logo=react&logoColor=black)
@@ -6,210 +6,113 @@
 ![Python](https://img.shields.io/badge/ML-Python-3776AB.svg?logo=python&logoColor=white)
 ![TensorFlow](https://img.shields.io/badge/AI-TensorFlow-FF6F00.svg?logo=tensorflow&logoColor=white)
 
-**Bloom Skin** is an advanced AI-powered dermatological analysis platform designed to democratize access to personalized skin health insights. By leveraging deep learning models and a modern distributed architecture, Bloom Skin offers users instant analysis of skin conditions (such as Acne, Cyst, Papules) and provides tailored recommendations.
+**BloomSkin** is a state-of-the-art dermatological analysis platform that transforms your smartphone into a professional skin diagnostic tool. By merging deep learning (CNNs) with a medical-grade knowledge base, BloomSkin provides users with instant, accurate, and personalized skin health journeys.
 
 ---
 
-## 🚀 Live Demo
+## 🏗️ Product Architecture
 
-- **Frontend Application**: [https://bloom-skin-frontend.onrender.com/](https://bloom-skin-frontend.onrender.com/) 
-- **Backend API**: [https://bloom-skin-backend.onrender.com](https://bloom-skin-backend.onrender.com)
-
----
-
-## 🏗️ System Architecture
-
-Bloom Skin utilizes a microservices-inspired architecture to separate concerns between the user interface, business logic, and computationally intensive machine learning tasks.
+BloomSkin is built on a high-performance distributed architecture designed for scalability and sub-second analysis.
 
 ### System Context
-High-level view of how users interact with the system.
-
 ```mermaid
 graph LR
     User((User))
-    subgraph "Bloom Skin Ecosystem"
-        WebApp[Bloom Skin Web App]
+    subgraph "BloomSkin Platform"
+        WebApp[React SPA]
+        API[Express Gateway]
+        ML[Python ML Engine]
     end
-    subgraph "External Services"
-        Cloudinary[Cloudinary Media]
-        Google[Google OAuth]
+    subgraph "Data & Media"
+        Cloudinary[Media Storage]
         Mongo[(MongoDB Atlas)]
     end
 
-    User -->|Uploads Image/Logs In| WebApp
-    WebApp -->|Stores Images| Cloudinary
-    WebApp -->|Authenticates| Google
-    WebApp -->|Persists Data| Mongo
-```
-
-### Container Architecture
-Detailed view of the application containers and their communication protocols.
-
-```mermaid
-graph TD
-    User((User))
-    
-    subgraph "Frontend Layer"
-        ReactApp[React + Vite SPA]
-    end
-    
-    subgraph "Backend Layer"
-        ExpressAPI[Node.js + Express API]
-    end
-    
-    subgraph "Data & ML Layer"
-        FlaskML[Flask ML Service]
-        MongoDB[(MongoDB)]
-    end
-
-    User -->|HTTPS| ReactApp
-    ReactApp -->|REST API / JSON| ExpressAPI
-    ExpressAPI -->|Internal HTTP| FlaskML
-    ExpressAPI -->|Mongoose ODM| MongoDB
-    
-    FlaskML -->|TensorFlow/Keras| Model[Skin Analysis Model]
+    User -->|Analyzes Skin| WebApp
+    WebApp --> API
+    API -->|Condition Analysis| ML
+    API -->|Persistence| Mongo
+    API -->|Image Optimization| Cloudinary
 ```
 
 ---
 
-## ✨ Key Features
+## 🌟 Advanced Product Features
 
-- **🤖 AI-Powered Skin Analysis**: Utilizes a custom-trained Convolutional Neural Network (CNN) to detect skin conditions like Blackheads, Cysts, Papules, Pustules, and Whiteheads.
-- **🔒 Secure Authentication**: Robust user management with JWT-based authentication and Google OAuth integration.
-- **📸 Smart Image Processing**: Automatic face detection and cropping using MTCNN to ensure high-accuracy analysis.
-- **☁️ Cloud Storage**: Seamless integration with Cloudinary for secure and scalable image storage.
-- **📊 History & Tracking**: Users can track their skin health journey over time with a persistent history of past analyses.
-- **📱 Responsive Design**: A mobile-first UI built with Tailwind CSS and Framer Motion for smooth animations.
+- **🔬 Precision AI Scan**: Uses a custom-trained Convolutional Neural Network (CNN) to detect 5+ skin conditions (Acne, Cyst, Papules, Pustules, etc.) with high confidence.
+* **📈 Skin Health Dashboard**: A centralized hub that tracks your "Bloom Score," severity trends, and scan frequency using interactive charts.
+* **🧬 Dynamic Recommendation Engine**: A weighted logic system that analyzes your scan history to recommend specific ingredients and products tailored to your skin's current state.
+* **🗓️ Smart Routine Planner**: Automatically generates a 7-day personalized skincare routine (Morning & Evening) based on your latest AI diagnostics.
+* **📸 Face-Aware Analysis**: Integrated MTCNN face detection to ensure scans are taken correctly, reducing false positives.
+* **🔐 Enterprise-Grade Auth**: Secure Google OAuth 2.0 and JWT-based session management.
+* **📱 Premium UI/UX**: A sleek, dark-mode-ready interface built with Tailwind CSS, Lucide icons, and fluid Framer Motion animations.
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Technical Tech Stack
 
 ### Frontend
-- **Framework**: React 19 (Vite)
-- **Styling**: Tailwind CSS v4, Framer Motion
-- **State Management**: React Context API
-- **HTTP Client**: Axios
+- **React 19 (Vite)**: Ultra-fast SPA framework.
+- **Tailwind CSS v4**: Modern utility-first styling.
+- **Framer Motion**: Premium micro-animations.
+- **Lucide React**: Vector-perfect product iconography.
 
-### Backend
-- **Runtime**: Node.js
-- **Framework**: Express.js
-- **Database**: MongoDB (Mongoose ODM)
-- **Authentication**: Passport.js (Local & Google Strategy)
-- **File Handling**: Multer + Cloudinary
-
-### Machine Learning Service
-- **Framework**: Flask
-- **Core Libraries**: TensorFlow, Keras, OpenCV, NumPy, Pillow
-- **Face Detection**: MTCNN
+### Backend & ML
+- **Node.js & Express**: High-concurrency API gateway.
+- **MongoDB Atlas**: Scalable NoSQL document storage.
+- **Flask (Python)**: High-performance ML serving layer.
+- **TensorFlow/Keras**: Core deep learning analysis models.
 
 ---
 
-## ⚡ Getting Started
+## ⚡ Quick Start
 
-Follow these instructions to set up the project locally.
-
-### Prerequisites
-- **Node.js** (v16+)
-- **Python** (v3.8+)
-- **MongoDB** (Local or Atlas URI)
-- **Cloudinary Account**
-
-### 1. Clone the Repository
+### 1. Repository Setup
 ```bash
-git clone https://github.com/yourusername/bloom-skin.git
-cd bloom-skin
+git clone https://github.com/rasikarakhewar3010/Bloom-Skin.git
+cd Bloom-Skin
 ```
 
-### 2. Backend Setup
-Navigate to the backend directory and install dependencies.
+### 2. Environment Configuration
+For both the `backend/` and `frontend/` directories, copy the provided `.env.example` file to create your own `.env` file and fill in your credentials:
+
 ```bash
-cd backend
-npm install
+# In backend/
+cp .env.example .env
+
+# In frontend/
+cp .env.example .env
+
+# In bloom-skin-ml/
+cp .env.example .env
 ```
 
-Create a `.env` file in the `backend` directory:
-```env
-PORT=3000
-MONGO_URI=your_mongodb_connection_string
-SESSION_SECRET=your_session_secret
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-CLIENT_URL=http://localhost:5173
-ML_API_URL=http://localhost:5000
-```
-
-Start the backend server:
+### 3. Local Installation
 ```bash
-npm start
+# Start Backend
+cd backend && npm install && npm start
+
+# Start ML Engine (Python venv required)
+cd bloom-skin-ml && pip install -r requirements.txt && python app.py
+
+# Start Frontend
+cd frontend && npm install && npm run dev
 ```
-
-### 3. ML Service Setup
-Navigate to the ML directory.
-```bash
-cd ../bloom-skin-ml
-```
-
-Create a virtual environment and install dependencies:
-```bash
-python -m venv venv
-# Windows
-venv\Scripts\activate
-# Mac/Linux
-source venv/bin/activate
-
-pip install -r requirements.txt
-```
-
-Ensure your trained model (`skin_problem_classifier_v1.h5`) is placed in `bloom-skin-ml/model/`.
-
-Start the Flask service:
-```bash
-python app.py
-```
-
-### 4. Frontend Setup
-Navigate to the frontend directory.
-```bash
-cd ../frontend
-npm install
-```
-
-Start the development server:
-```bash
-npm run dev
-```
-
-Visit `http://localhost:5173` to view the application.
 
 ---
 
-## 📂 Project Structure
+## 📂 Architecture Overview
 
-```
-Bloom Skin/
-├── backend/                 # Node.js Express API
-│   ├── config/             # DB & Passport config
-│   ├── controllers/        # Request handlers
-│   ├── models/             # Mongoose schemas
-│   ├── routes/             # API endpoints
-│   └── app.js              # Entry point
-│
-├── frontend/                # React Vite Application
-│   ├── src/
-│   │   ├── components/     # Reusable UI components
-│   │   ├── context/        # Global state (Auth, UI)
-│   │   ├── pages/          # Full page views
-│   │   └── assets/         # Static assets
-│
-└── bloom-skin-ml/          # Python Flask ML Service
-    ├── model/              # .h5 Model files
-    └── app.py              # Flask application
+```text
+BloomSkin/
+├── backend/                 # API Gateway & Logic
+├── frontend/                # React UI Layer
+└── bloom-skin-ml/          # AI Analysis Engine
 ```
 
 ---
+
+*© 2026 BloomSkin Inc. Developed for precision skin health.*
+
 
 

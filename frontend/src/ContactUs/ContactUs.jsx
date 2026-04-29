@@ -32,7 +32,7 @@ const ContactUs = () => {
           setTimeout(() => setAlert({ show: false }), 3000);
         },
         (error) => {
-          console.error("FAILED...", error);
+
           setLoading(false);
           setAlert({ show: true, success: false, message: "Failed to send message!" });
           setTimeout(() => setAlert({ show: false }), 3000);

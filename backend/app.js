@@ -6,6 +6,7 @@ const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const passport = require("passport");
 const MongoStore = require("connect-mongo");
+const path = require("path");
 
 dotenv.config();
 require("./config/passport");
@@ -17,6 +18,7 @@ const app = express();
 // ------------------------------
 app.use(express.json());
 app.use(cookieParser());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ✅ CORS: allow frontend to send cookies
 app.use(cors({
@@ -47,12 +49,7 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-// ✅ Debug Session (optional for dev)
-app.use((req, res, next) => {
-  console.log("Session:", req.session);
-  console.log("User:", req.user);
-  next();
-});
+
 
 // ------------------------------
 // ✅ Routes
@@ -60,6 +57,9 @@ app.use((req, res, next) => {
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/predict", require("./routes/prediction.routes"));
 app.use("/api/history", require("./routes/history.routes"));
+app.use("/api/recommendations", require("./routes/recommendation.routes"));
+app.use("/api/dashboard", require("./routes/dashboard.routes"));
+app.use("/api/routine", require("./routes/routine.routes"));
 
 // ------------------------------
 // ✅ MongoDB & Start Server
@@ -67,7 +67,6 @@ app.use("/api/history", require("./routes/history.routes"));
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     app.listen(process.env.PORT || 3000, () => {
-      console.log(`Server running at http://localhost:${process.env.PORT}`);
+
     });
-  })
-  .catch((err) => console.error("❌ DB connection error:", err));
+  })

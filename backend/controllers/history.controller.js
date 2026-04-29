@@ -8,7 +8,7 @@ exports.getHistory = async (req, res) => {
     const history = await History.find({ user: req.user.id }).sort({ createdAt: -1 });
     res.json(history);
   } catch (err) {
-    console.error(err.message);
+
     res.status(500).send('Server Error');
   }
 };
@@ -20,7 +20,7 @@ exports.deleteHistory = async (req, res) => {
     await History.deleteMany({ user: req.user.id });
     res.json({ msg: 'History cleared successfully' });
   } catch (err) {
-    console.error(err.message);
+
     res.status(500).send('Server Error');
   }
 };
@@ -67,7 +67,7 @@ exports.exportHistory = async (req, res) => {
     res.json({ msg: 'History has been sent to your email.' });
 
   } catch (err) {
-    console.error(err.message);
+
     res.status(500).send('Server Error');
   }
 };

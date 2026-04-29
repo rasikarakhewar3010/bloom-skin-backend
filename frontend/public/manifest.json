@@ -1,0 +1,25 @@
+{
+  "short_name": "BloomSkin",
+  "name": "BloomSkin: AI Skin Analysis",
+  "icons": [
+    {
+      "src": "/images/BLOOM SKIN LOGO.PNG",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/BLOOM SKIN LOGO.PNG",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/images/BLOOM SKIN LOGO.PNG",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#FB6F92",
+  "background_color": "#ffffff"
+}

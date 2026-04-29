@@ -20,7 +20,7 @@ router.post('/', upload.single('image'), async (req, res) => {
   }
 
   try {
-    console.log('Forwarding file to ML service...');
+
     
     // 1. Create a NEW FormData object
     const form = new FormData();
@@ -41,13 +41,13 @@ router.post('/', upload.single('image'), async (req, res) => {
       { headers: form.getHeaders() } // <-- THE FIX IS HERE
     );
 
-    console.log('Received response from ML service.');
+
     // Send the final result back to the frontend
     res.json(response.data);
 
   } catch (error) {
     // More descriptive error logging
-    console.error('Error proxying to ML service:', error.response ? error.response.data : error.message);
+
     res.status(500).json({ message: "An error occurred with the prediction service." });
   }
 });

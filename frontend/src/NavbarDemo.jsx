@@ -10,36 +10,29 @@ import {
   MobileNavToggle,
   MobileNavMenu,
 } from "@/components/ui/resizable-navbar";
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+import { useAuth } from "./context/AuthContext";
+import { User, LogOut, LayoutDashboard, Sparkles, Calendar, Clock } from "lucide-react";
 
 export function NavbarDemo() {
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(
-    localStorage.getItem("isLoggedIn") === "true"
-  );
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const { isLoggedIn, logout, user } = useAuth(); // Assuming user object is available
   const [flash, setFlash] = useState("");
+  const dropdownRef = useRef(null);
 
+  // Close dropdown when clicking outside
   useEffect(() => {
-    const checkLoginStatus = () => {
-      const loggedIn = localStorage.getItem("isLoggedIn") === "true";
-      setIsLoggedIn(loggedIn);
-    };
-
-    checkLoginStatus();
-
-    const handleStorageChange = () => {
-      checkLoginStatus();
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
-  }, []);
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsProfileOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [dropdownRef]);
 
   const showFlash = (msg) => {
     setFlash(msg);
@@ -48,33 +41,33 @@ export function NavbarDemo() {
 
   const handleLogout = async () => {
     try {
-      await axios.get("http://localhost:3000/api/auth/logout", {
-        withCredentials: true,
-      });
-      localStorage.removeItem("isLoggedIn");
-      setIsLoggedIn(false);
+      await logout();
       showFlash("You have logged out successfully.");
+      setIsProfileOpen(false);
     } catch (error) {
       showFlash("Logout failed. Try again.");
     }
   };
 
-  // Define base navigation items
-  const baseNavItems = [
+  // Base navigation items (Always visible)
+  const navItems = [
     { name: "AI Camera", link: "/aichat" },
     { name: "Guide", link: "/guide" },
     { name: "Contact", link: "/contact" },
   ];
 
-  // Conditionally add "History" only if logged in
-  const navItems = isLoggedIn
-    ? [...baseNavItems, { name: "History", link: "/history" }]
-    : baseNavItems;
+  // Profile menu items
+  const profileItems = [
+    { name: "Dashboard", link: "/dashboard", icon: <LayoutDashboard size={16} /> },
+    { name: "Recommendations", link: "/recommendations", icon: <Sparkles size={16} /> },
+    { name: "My Routine", link: "/routine", icon: <Calendar size={16} /> },
+    { name: "History", link: "/history", icon: <Clock size={16} /> },
+  ];
 
   return (
     <div className="relative w-full pt-8 z-60">
       {flash && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-2 rounded-lg shadow-md z-50 transition-all duration-300">
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-2 rounded-full shadow-md z-[100] transition-all duration-300 font-medium text-sm">
           {flash}
         </div>
       )}
@@ -83,19 +76,55 @@ export function NavbarDemo() {
         <NavBody>
           <NavbarLogo />
           <NavItems items={navItems} />
+          
           <div className="flex items-center gap-4">
             {!isLoggedIn ? (
               <Link to="/login">
-                <NavbarButton variant="secondary">Login</NavbarButton>
+                <NavbarButton variant="primary">Log In</NavbarButton>
               </Link>
             ) : (
-              <NavbarButton variant="primary" onClick={handleLogout}>
-                Logout
-              </NavbarButton>
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="flex items-center justify-center w-10 h-10 rounded-full bg-pink-100 text-pink-600 hover:bg-pink-200 transition-colors border-2 border-transparent hover:border-pink-300 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:ring-offset-2"
+                >
+                  <User size={20} strokeWidth={2.5} />
+                </button>
+
+                {/* Profile Dropdown */}
+                {isProfileOpen && (
+                  <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 animate-in fade-in slide-in-from-top-2 z-50">
+                    <div className="px-4 py-2 border-b border-gray-50 mb-1">
+                      <p className="text-sm font-semibold text-gray-800">My Profile</p>
+                    </div>
+                    {profileItems.map((item) => (
+                      <Link
+                        key={item.name}
+                        to={item.link}
+                        onClick={() => setIsProfileOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-600 hover:text-pink-600 hover:bg-pink-50 transition-colors"
+                      >
+                        {item.icon}
+                        {item.name}
+                      </Link>
+                    ))}
+                    <div className="border-t border-gray-100 mt-1 pt-1">
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                      >
+                        <LogOut size={16} />
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </NavBody>
 
+        {/* Mobile Navigation */}
         <MobileNav>
           <MobileNavHeader>
             <NavbarLogo />
@@ -114,34 +143,51 @@ export function NavbarDemo() {
                 key={`mobile-link-${idx}`}
                 href={item.link}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="relative text-neutral-600 dark:text-neutral-300"
+                className="relative text-lg font-medium text-gray-700 hover:text-pink-500 py-2 block"
               >
-                <span className="block">{item.name}</span>
+                {item.name}
               </a>
             ))}
 
-            <div className="flex w-full flex-col gap-4 mt-4">
+            {isLoggedIn && (
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <p className="text-xs uppercase tracking-wider text-gray-400 font-bold mb-3">Profile Menu</p>
+                {profileItems.map((item) => (
+                  <Link
+                    key={`mobile-profile-${item.name}`}
+                    to={item.link}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-3 py-3 text-base font-medium text-gray-700 hover:text-pink-500"
+                  >
+                    <span className="text-pink-400">{item.icon}</span>
+                    {item.name}
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            <div className="flex w-full flex-col gap-4 mt-6">
               {!isLoggedIn ? (
-                <Link to="/login">
+                <Link to="/login" className="w-full">
                   <NavbarButton
                     onClick={() => setIsMobileMenuOpen(false)}
-                    variant="secondary"
-                    className="w-full"
+                    variant="primary"
+                    className="w-full py-3"
                   >
-                    Login
+                    Log In
                   </NavbarButton>
                 </Link>
               ) : (
-                <NavbarButton
+                <button
                   onClick={() => {
                     handleLogout();
                     setIsMobileMenuOpen(false);
                   }}
-                  variant="primary"
-                  className="w-full"
+                  className="w-full flex items-center justify-center gap-2 py-3 bg-red-50 text-red-600 font-semibold rounded-xl hover:bg-red-100 transition-colors"
                 >
+                  <LogOut size={18} />
                   Logout
-                </NavbarButton>
+                </button>
               )}
             </div>
           </MobileNavMenu>

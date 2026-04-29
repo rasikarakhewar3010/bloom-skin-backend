@@ -1,10 +1,32 @@
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
-  name: String,
-  email: { type: String, required: true, unique: true },
+  name: { type: String, trim: true },
+  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   password: String,
   googleId: String,
+
+  // --- Skin Profile ---
+  skinProfile: {
+    skinType: {
+      type: String,
+      enum: ['oily', 'dry', 'combination', 'normal', 'sensitive', ''],
+      default: '',
+    },
+    age: { type: Number, min: 10, max: 120 },
+    knownAllergies: [{ type: String, trim: true }],
+    currentConcerns: [{ type: String, trim: true }],
+    environment: {
+      type: String,
+      enum: ['humid', 'dry', 'polluted', 'temperate', ''],
+      default: '',
+    },
+  },
+
+  // --- App Preferences ---
+  preferences: {
+    notificationsEnabled: { type: Boolean, default: true },
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model("User", userSchema);

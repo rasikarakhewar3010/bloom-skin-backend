@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { getHistory, deleteHistory, exportHistory } from '../api/apiService';
+import { useNavigate } from 'react-router-dom';
 import './HistoryPage.css'; // Keep this for the fade-in animation
 import { FaTrashAlt, FaEnvelopeOpenText } from 'react-icons/fa';
 
@@ -23,6 +24,7 @@ const MessageDisplay = ({ message }) => {
 };
 
 const HistoryPage = () => {
+  const navigate = useNavigate();
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
@@ -36,7 +38,7 @@ const HistoryPage = () => {
       setHistory(data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
     } catch (error) {
       setMessage('Failed to load your history. Please try refreshing the page.');
-      console.error(error);
+
     } finally {
       setLoading(false);
     }
@@ -56,7 +58,7 @@ const HistoryPage = () => {
         setHistory([]);
       } catch (error) {
         setMessage('Failed to clear history. Please try again.');
-        console.error(error);
+
       } finally {
         setLoading(false);
       }
@@ -70,7 +72,7 @@ const HistoryPage = () => {
       setMessage(res.msg || 'History export initiated! Please check your email inbox (and spam folder).');
     } catch (error) {
       setMessage('Failed to export history. Please try again.');
-      console.error(error);
+
     }
   };
 
@@ -85,6 +87,17 @@ const HistoryPage = () => {
         <div className="text-center mb-8 md:mb-12">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-pink-500 mb-2 tracking-tight">Your Skin Analysis History</h1>
           <p className="text-md sm:text-lg text-gray-600 max-w-2xl mx-auto">Review, manage, and export your previous predictions.</p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <button onClick={() => navigate('/dashboard')} className="px-4 py-2 bg-pink-100 text-pink-700 rounded-full font-semibold hover:bg-pink-200 transition text-sm shadow-sm">
+              📊 View Dashboard
+            </button>
+            <button onClick={() => navigate('/recommendations')} className="px-4 py-2 bg-purple-100 text-purple-700 rounded-full font-semibold hover:bg-purple-200 transition text-sm shadow-sm">
+              🧬 Recommendations
+            </button>
+            <button onClick={() => navigate('/routine')} className="px-4 py-2 bg-teal-100 text-teal-700 rounded-full font-semibold hover:bg-teal-200 transition text-sm shadow-sm">
+              🗓️ My Routine
+            </button>
+          </div>
         </div>
 
         {/* Message Display - already responsive */}

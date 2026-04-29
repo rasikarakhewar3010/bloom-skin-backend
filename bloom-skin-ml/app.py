@@ -80,7 +80,12 @@ def analyze_skin_image(image_bytes):
         x2, y2 = min(img_rgb.shape[1], x + width + pad_w), min(img_rgb.shape[0], y + height + pad_h)
         image_to_process = img_rgb[y1:y2, x1:x2]
     else:
-        logger.info("No face detected. Using full image for analysis.")
+        logger.info("No face detected.")
+        return {
+            'class': 'No Face Detected',
+            'confidence': 1.0,
+            'info': 'We could not detect a clear face. Please retake the photo facing a window for natural light.'
+        }, 400
 
     try:
         resized_image = cv2.resize(image_to_process, (224, 224))

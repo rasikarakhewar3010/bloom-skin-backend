@@ -106,8 +106,10 @@ exports.getRecommendations = async (req, res) => {
         weightedScore: data.totalScore,
         lastSeen: data.lastSeen,
         percentage: Math.round((data.count / history.length) * 100),
+        icon: KNOWLEDGE_BASE[name]?.icon || 'https://cdn-icons-png.flaticon.com/512/3233/3233497.png'
       }))
       .sort((a, b) => b.weightedScore - a.weightedScore);
+
 
     // --- Bloom Score (shared computation — same as Dashboard) ---
     const bloomScore = computeBloomScore(history);
@@ -184,6 +186,33 @@ exports.getRecommendations = async (req, res) => {
       stable: '➡️ Your skin condition has been relatively stable.',
     };
 
+    // --- Dynamic Skin Overview (Moved from Frontend for true real-time) ---
+    const userProfile = await require('../models/User').findById(req.user.id);
+    const skinType = userProfile?.skinProfile?.skinType || 'normal';
+    
+    const skinOverview = [
+      { 
+        label: 'Hydration', 
+        value: skinType === 'dry' ? 'Needs care' : 'Good', 
+        icon: '💧' 
+      },
+      { 
+        label: 'Oil Balance', 
+        value: skinType === 'oily' ? 'Moderate' : 'Balanced', 
+        icon: '✨' 
+      },
+      { 
+        label: 'Sensitivity', 
+        value: skinType === 'sensitive' ? 'Moderate' : 'Balanced', 
+        icon: '🛡️' 
+      },
+      { 
+        label: 'Clarity', 
+        value: bloomScore >= 80 ? 'Good' : bloomScore >= 50 ? 'Moderate' : 'Needs care', 
+        icon: '🎯' 
+      },
+    ];
+
     res.json({
       summary: {
         totalScans: history.length,
@@ -191,6 +220,7 @@ exports.getRecommendations = async (req, res) => {
         overallTrend,
         trendMessage: trendMessage[overallTrend],
         bloomScore,
+        skinOverview, // New dynamic data
         message: bloomScore >= 80
           ? 'Your skin health is looking great! Keep up your routine.'
           : bloomScore >= 50
@@ -205,6 +235,7 @@ exports.getRecommendations = async (req, res) => {
       },
       conditionBreakdown: rankedConditions,
     });
+
 
   } catch (err) {
 

@@ -61,8 +61,9 @@ exports.handlePrediction = async (req, res) => {
 
       imageBuffer = fs.readFileSync(finalImageUrl);
       // Convert local path to a URL that the frontend can access
-      const port = process.env.PORT || 3000;
-      finalImageUrl = `http://localhost:${port}/uploads/${req.file.filename}`;
+      // In production behind a proxy (like Render), req.get('host') handles the correct domain
+      const baseUrl = req.protocol + '://' + req.get('host');
+      finalImageUrl = `${baseUrl}/uploads/${req.file.filename}`;
     }
 
     // Step 2: Create form and send to Python ML service

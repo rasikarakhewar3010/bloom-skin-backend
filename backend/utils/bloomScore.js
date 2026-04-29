@@ -26,33 +26,37 @@ function computeBloomScore(history) {
   const validScans = history.filter(h => h.prediction !== 'Invalid Image');
   if (validScans.length === 0) return 100;
 
-  const clearCount = validScans.filter(h => h.prediction === 'Clear Skin').length;
-  const conditionScans = validScans.filter(h => h.prediction !== 'Clear Skin');
+  // Smoothing Algorithm:
+  // Instead of the whole history, we focus on the last 3 scans to reflect "Current Health".
+  // We use a weighted average so the newest scan counts most, but is buffered by the previous two.
+  
+  // Scans are sorted by date in the history array (check dashboard controller sorting)
+  // Dashboard controller sorts by createdAt: 1 (oldest first).
+  // Let's get the newest ones.
+  const sortedNewest = [...validScans].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const recentScans = sortedNewest.slice(0, 3);
+  
+  const scanScores = recentScans.map(scan => {
+    if (scan.prediction === 'Clear Skin') return 100;
+    const weight = KNOWLEDGE_BASE[scan.prediction]?.severityWeight || 1;
+    // Each individual scan score formula: 100 - (confidence * weight * 12)
+    // 12 is a scaling factor to keep scores in a realistic range (60-95 for mild/moderate)
+    return Math.max(10, 100 - (scan.confidence * weight * 12));
+  });
 
-  // If all scans are clear, perfect score
-  if (conditionScans.length === 0) return 100;
+  // Weights for smoothing: Newest (50%), Previous (30%), Older (20%)
+  const weights = [0.5, 0.3, 0.2];
+  let weightedSum = 0;
+  let activeWeightSum = 0;
 
-  // Calculate average penalty from condition scans
-  // Severity weight is capped at 3 for the formula (so Cyst=5 doesn't obliterate the score)
-  const totalPenalty = conditionScans.reduce((sum, h) => {
-    const rawWeight = KNOWLEDGE_BASE[h.prediction]?.severityWeight || 1;
-    const cappedWeight = Math.min(rawWeight, 3);
-    return sum + (h.confidence * cappedWeight);
-  }, 0);
+  scanScores.forEach((score, i) => {
+    weightedSum += score * weights[i];
+    activeWeightSum += weights[i];
+  });
 
-  const avgPenalty = totalPenalty / conditionScans.length;
-
-  // Condition ratio: what fraction of scans are conditions (not clear)
-  const conditionRatio = conditionScans.length / validScans.length;
-
-  // Clear skin bonus: if you have clear scans mixed in, your score improves
-  const clearBonus = (clearCount / validScans.length) * 20;
-
-  // Final score: start at 100, deduct based on severity and ratio, add clear bonus
-  // The multiplier 35 (instead of 60) prevents the score from hitting 0 too easily
-  const rawScore = 100 - (avgPenalty * conditionRatio * 35) + clearBonus;
-
-  return Math.max(5, Math.min(100, Math.round(rawScore)));
+  const smoothedScore = Math.round(weightedSum / activeWeightSum);
+  
+  return Math.max(5, Math.min(100, smoothedScore));
 }
 
 module.exports = { computeBloomScore };

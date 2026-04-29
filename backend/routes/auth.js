@@ -64,6 +64,12 @@ router.get("/me", (req, res) => {
   res.status(401).json({ error: "Not authenticated." });
 });
 
+// @route   PUT /api/auth/profile
+// @desc    Update user profile
+// @access  Private
+const { updateProfile } = require("../controllers/authController");
+router.put("/profile", updateProfile);
+
 // @route   POST /api/auth/forgot-password
 // @desc    Send password reset email
 // @access  Public (rate-limited)

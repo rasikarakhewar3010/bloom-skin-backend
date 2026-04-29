@@ -95,3 +95,44 @@ exports.logout = (req, res) => {
     res.json({ message: "Logged out successfully." });
   });
 };
+
+// @desc    Update user profile (specifically skin profile during onboarding)
+// @route   PUT /api/auth/profile
+exports.updateProfile = async (req, res) => {
+  try {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Not authenticated." });
+    }
+
+    const { skinProfile, preferences } = req.body;
+    
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    if (skinProfile) {
+      user.skinProfile = { ...user.skinProfile.toObject(), ...skinProfile };
+    }
+    
+    if (preferences) {
+      user.preferences = { ...user.preferences.toObject(), ...preferences };
+    }
+
+    await user.save();
+
+    res.json({
+      message: "Profile updated successfully.",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        skinProfile: user.skinProfile,
+        preferences: user.preferences,
+      }
+    });
+  } catch (err) {
+    console.error("Update profile error:", err);
+    res.status(500).json({ error: "Server error during profile update." });
+  }
+};

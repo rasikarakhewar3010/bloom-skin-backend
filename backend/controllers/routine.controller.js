@@ -205,3 +205,63 @@ exports.getRoutine = async (req, res) => {
     res.status(500).json({ error: 'Failed to generate routine.' });
   }
 };
+
+// @desc    Track routine completion (AM or PM)
+// @route   POST /api/routine/track
+exports.trackRoutine = async (req, res) => {
+  try {
+    const { timeOfDay } = req.body; // 'am' or 'pm'
+    if (!['am', 'pm'].includes(timeOfDay)) {
+      return res.status(400).json({ error: "Invalid timeOfDay. Must be 'am' or 'pm'." });
+    }
+
+    const User = require('../models/User');
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: "User not found." });
+
+    const now = new Date();
+    
+    // Streak calculation logic
+    let streak = user.routineTracking?.streak || 0;
+    const lastAm = user.routineTracking?.lastAmCompletion;
+    const lastPm = user.routineTracking?.lastPmCompletion;
+    
+    // Simple streak logic: if they haven't completed anything in 48 hours, reset
+    const lastAny = lastAm > lastPm ? lastAm : lastPm;
+    if (lastAny) {
+      const hoursSinceLast = (now - new Date(lastAny)) / (1000 * 60 * 60);
+      if (hoursSinceLast > 48) {
+        streak = 0; // Streak broken
+      }
+      
+      // If it's a new day and they completed the first routine of the day, increment streak
+      const lastDate = new Date(lastAny).toDateString();
+      const todayDate = now.toDateString();
+      if (lastDate !== todayDate) {
+        streak += 1;
+      }
+    } else {
+      // First time completing a routine
+      streak = 1;
+    }
+
+    // Update tracking
+    const updateField = timeOfDay === 'am' ? 'lastAmCompletion' : 'lastPmCompletion';
+    
+    user.routineTracking = {
+      ...user.routineTracking,
+      [updateField]: now,
+      streak
+    };
+
+    await user.save();
+
+    res.json({
+      message: `${timeOfDay.toUpperCase()} Routine tracked!`,
+      routineTracking: user.routineTracking
+    });
+  } catch (err) {
+    console.error("Track routine error:", err);
+    res.status(500).json({ error: 'Failed to track routine.' });
+  }
+};

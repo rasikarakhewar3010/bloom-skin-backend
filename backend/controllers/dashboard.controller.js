@@ -126,6 +126,13 @@ exports.getDashboardStats = async (req, res) => {
     const conditionEntries = history.filter(h => h.prediction !== 'Clear Skin' && h.prediction !== 'Invalid Image');
     const clearCount = history.filter(h => h.prediction === 'Clear Skin').length;
 
+    const firstScan = history[0] ? {
+      id: history[0]._id,
+      prediction: history[0].prediction,
+      imageUrl: history[0].imageUrl,
+      date: history[0].createdAt,
+    } : null;
+
     res.json({
       bloomScore,
       totalScans: history.length,
@@ -134,6 +141,7 @@ exports.getDashboardStats = async (req, res) => {
       timeline,
       severityTrend,
       recentScans,
+      firstScan,
       insights: {
         mostCommon: conditionFrequency[0]?.name || 'Clear Skin',
         trendDirection,

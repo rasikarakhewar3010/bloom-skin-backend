@@ -24,6 +24,12 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }, // Allow Cloudinary images to load
 }));
 
+const compression = require('compression');
+app.use(compression()); // Compress all responses for performance
+
+// Trust the first proxy (required for secure cookies when deployed on Render behind a load balancer)
+app.set("trust proxy", 1);
+
 // Body size limits — Prevents payload-based DoS attacks
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: false, limit: '1mb' }));
@@ -52,9 +58,10 @@ app.use(
     }),
     cookie: {
       maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === "production", // Must be true in production (HTTPS)
       httpOnly: true,
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 'none' required for cross-domain
+      domain: undefined, // Let the browser determine the domain
     },
   })
 );
@@ -75,6 +82,13 @@ app.use("/api/history", require("./routes/history.routes"));
 app.use("/api/recommendations", require("./routes/recommendation.routes"));
 app.use("/api/dashboard", require("./routes/dashboard.routes"));
 app.use("/api/routine", require("./routes/routine.routes"));
+
+// ------------------------------
+// ✅ Health Check (For Keep-Alive Pings)
+// ------------------------------
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'healthy', timestamp: Date.now() });
+});
 
 // ------------------------------
 // ✅ Global Error Handler

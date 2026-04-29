@@ -28,6 +28,13 @@ const userSchema = new mongoose.Schema({
     notificationsEnabled: { type: Boolean, default: true },
   },
 
+  // --- Routine Tracking ---
+  routineTracking: {
+    lastAmCompletion: { type: Date, default: null },
+    lastPmCompletion: { type: Date, default: null },
+    streak: { type: Number, default: 0 },
+  },
+
   // --- Password Reset ---
   resetPasswordToken: { type: String },
   resetPasswordExpires: { type: Date },

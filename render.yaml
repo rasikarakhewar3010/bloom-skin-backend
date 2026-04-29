@@ -1,0 +1,36 @@
+services:
+  # Backend Node.js API
+  - type: web
+    name: bloomskin-api
+    env: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node app.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: FRONTEND_URL
+        value: https://bloomskin.vercel.app
+      - key: GOOGLE_CALLBACK_URL
+        value: https://bloomskin-api.onrender.com/api/auth/google/callback
+      - key: ML_SERVICE_URL
+        value: https://bloomskin-ml.onrender.com
+      # Note: For security, sensitive variables like MONGO_URI, SESSION_SECRET, 
+      # CLOUDINARY keys, and GOOGLE_CLIENT secrets should be added manually 
+      # in the Render dashboard, NOT in this file.
+
+  # ML Python Service (Docker)
+  - type: web
+    name: bloomskin-ml
+    env: docker
+    rootDir: bloom-skin-ml
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: CONFIDENCE_THRESHOLD
+        value: 0.80
+      - key: MODEL_PATH
+        value: ./model/skin_problem_classifier_v1.h5

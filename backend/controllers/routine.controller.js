@@ -69,6 +69,8 @@ const buildRoutine = (conditions, history) => {
         usage: prod.usage,
         forCondition: condName,
         priority: prod.priority,
+        buyLink: prod.buyLink || null,
+        price: prod.price || null,
       };
 
       if (prod.type === 'Mask' || prod.usage.toLowerCase().includes('week')) {

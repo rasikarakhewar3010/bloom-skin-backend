@@ -1,7 +1,6 @@
 const axios = require('axios');
 const FormData = require('form-data');
 const History = require('../models/history.model');
-const https = require('https');
 
 // Use environment variable for ML service URL with fallback
 const PYTHON_API_URL = process.env.ML_API_URL
@@ -55,7 +54,6 @@ exports.handlePrediction = async (req, res) => {
 
       const imageResponse = await axios.get(finalImageUrl, {
         responseType: 'arraybuffer',
-        httpsAgent: new https.Agent({ rejectUnauthorized: false })
       });
       imageBuffer = imageResponse.data;
     } else {

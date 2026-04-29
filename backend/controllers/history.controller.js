@@ -9,7 +9,7 @@ exports.getHistory = async (req, res) => {
     res.json(history);
   } catch (err) {
 
-    res.status(500).send('Server Error');
+    res.status(500).json({ error: 'Failed to load history.' });
   }
 };
 
@@ -21,7 +21,7 @@ exports.deleteHistory = async (req, res) => {
     res.json({ msg: 'History cleared successfully' });
   } catch (err) {
 
-    res.status(500).send('Server Error');
+    res.status(500).json({ error: 'Failed to clear history.' });
   }
 };
 
@@ -68,6 +68,6 @@ exports.exportHistory = async (req, res) => {
 
   } catch (err) {
 
-    res.status(500).send('Server Error');
+    res.status(500).json({ error: 'Failed to export history. Please try again.' });
   }
 };

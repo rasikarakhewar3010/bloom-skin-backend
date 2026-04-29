@@ -27,6 +27,10 @@ const userSchema = new mongoose.Schema({
   preferences: {
     notificationsEnabled: { type: Boolean, default: true },
   },
+
+  // --- Password Reset ---
+  resetPasswordToken: { type: String },
+  resetPasswordExpires: { type: Date },
 }, { timestamps: true });
 
 module.exports = mongoose.model("User", userSchema);

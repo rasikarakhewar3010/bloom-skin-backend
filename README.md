@@ -105,10 +105,43 @@ cd frontend && npm install && npm run dev
 
 ```text
 BloomSkin/
-├── backend/                 # API Gateway & Logic
-├── frontend/                # React UI Layer
-└── bloom-skin-ml/          # AI Analysis Engine
+├── backend/
+│   ├── config/              # Passport, Cloudinary configs
+│   ├── controllers/         # Business logic (auth, predict, dashboard, etc.)
+│   ├── data/                # Recommendation knowledge base
+│   ├── middleware/           # Auth guard, rate limiters
+│   ├── models/              # Mongoose schemas (User, History)
+│   ├── routes/              # Express route definitions
+│   └── app.js               # Entry point with security middleware
+├── frontend/
+│   ├── src/
+│   │   ├── components/      # Shared UI (ProtectedRoute, NotFound, etc.)
+│   │   ├── context/         # Auth state management
+│   │   ├── HomePage/        # Landing page sections
+│   │   └── [Feature]Page/   # Dashboard, History, Routine, etc.
+│   └── index.html           # SEO-optimized entry point
+└── bloom-skin-ml/
+    ├── model/               # TensorFlow .h5 model
+    └── app.py               # Flask ML inference service
 ```
+
+---
+
+## 🔐 Security Architecture
+
+BloomSkin implements **defense-in-depth** security across all layers:
+
+| Layer | Implementation |
+|---|---|
+| **HTTP Headers** | `helmet` — XSS protection, HSTS, CSP, MIME sniffing prevention |
+| **Rate Limiting** | `express-rate-limit` — Per-route limits (auth: 15/15min, uploads: 5/min, exports: 3/hr) |
+| **Authentication** | Passport.js with Google OAuth 2.0 + Local strategy, session-based with MongoStore |
+| **Route Protection** | Frontend `<ProtectedRoute>` component guards all authenticated pages |
+| **Input Validation** | Server-side email/password validation, file type/size filtering (5MB max) |
+| **Session Security** | HttpOnly cookies, SameSite policy, secure flag in production |
+| **File Upload Security** | Multer MIME type filter + size limit + Cloudinary virus scanning |
+| **Error Handling** | Global error handler prevents stack trace leaks in production |
+| **SSL/TLS** | Full certificate verification on all outbound HTTPS requests |
 
 ---
 

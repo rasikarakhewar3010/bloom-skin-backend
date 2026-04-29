@@ -8,6 +8,7 @@
 
 const History = require('../models/history.model');
 const { KNOWLEDGE_BASE } = require('../data/recommendationKnowledgeBase');
+const { computeBloomScore } = require('../utils/bloomScore');
 
 // @desc    Get dashboard stats for authenticated user
 // @route   GET /api/dashboard/stats
@@ -85,21 +86,8 @@ exports.getDashboardStats = async (req, res) => {
         severity: h.severity || computeSeverityFromConfidence(h.confidence),
       }));
 
-    // --- Bloom Score ---
-    const clearCount = history.filter((h) => h.prediction === 'Clear Skin').length;
-    const conditionEntries = history.filter((h) => h.prediction !== 'Clear Skin' && h.prediction !== 'Invalid Image');
-    
-    let bloomScore;
-    if (conditionEntries.length === 0) {
-      bloomScore = 100;
-    } else {
-      const avgSeverity = conditionEntries.reduce((sum, h) => {
-        const weight = KNOWLEDGE_BASE[h.prediction]?.severityWeight || 1;
-        return sum + (h.confidence * weight);
-      }, 0) / conditionEntries.length;
-      const conditionRatio = conditionEntries.length / history.length;
-      bloomScore = Math.max(0, Math.min(100, Math.round(100 - (avgSeverity * conditionRatio * 60))));
-    }
+    // --- Bloom Score (shared computation) ---
+    const bloomScore = computeBloomScore(history);
 
     // --- Scanning Streak ---
     const streak = computeStreak(history);
@@ -135,6 +123,8 @@ exports.getDashboardStats = async (req, res) => {
       imageUrl: h.imageUrl,
       date: h.createdAt,
     }));
+    const conditionEntries = history.filter(h => h.prediction !== 'Clear Skin' && h.prediction !== 'Invalid Image');
+    const clearCount = history.filter(h => h.prediction === 'Clear Skin').length;
 
     res.json({
       bloomScore,

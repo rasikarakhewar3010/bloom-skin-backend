@@ -52,7 +52,7 @@ const ScanIntro = () => {
                             {/* 4. Attach the handler to the button's onClick event */}
                             <button 
                                 onClick={handleNavigateToChat}
-                                className="bg-[#ff4f8b] hover:bg-[#e8437d] text-white font-medium py-2 px-6 rounded-full transition-all duration-300 transform hover:scale-105 shadow-md">
+                                className="bg-[#ff4f8b] hover:bg-[#e8437d] text-white font-medium py-2 px-6 rounded-full transition-all duration-300 transform hover:scale-105 shadow-md cursor-pointer">
                                 Start Your Skin Analysis
                             </button>
                         </div>

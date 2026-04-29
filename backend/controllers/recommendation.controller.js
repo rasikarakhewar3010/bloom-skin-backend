@@ -9,6 +9,7 @@
 
 const History = require('../models/history.model');
 const { KNOWLEDGE_BASE } = require('../data/recommendationKnowledgeBase');
+const { computeBloomScore } = require('../utils/bloomScore');
 
 /**
  * Compute a recency weight — more recent scans matter more.
@@ -108,14 +109,8 @@ exports.getRecommendations = async (req, res) => {
       }))
       .sort((a, b) => b.weightedScore - a.weightedScore);
 
-    // --- Compute Bloom Score (0-100) ---
-    const clearCount = history.filter(h => h.prediction === 'Clear Skin').length;
-    const conditionCount = history.length - clearCount;
-    const avgSeverity = rankedConditions.length > 0
-      ? rankedConditions.reduce((sum, c) => sum + (c.avgConfidence * (KNOWLEDGE_BASE[c.name]?.severityWeight || 1)), 0) / rankedConditions.length
-      : 0;
-    const conditionPenalty = Math.min(conditionCount / history.length, 1);
-    const bloomScore = Math.max(0, Math.min(100, Math.round(100 - (avgSeverity * conditionPenalty * 60))));
+    // --- Bloom Score (shared computation — same as Dashboard) ---
+    const bloomScore = computeBloomScore(history);
 
     // --- Aggregate recommendations from top conditions ---
     const topConditions = rankedConditions.slice(0, 3);

@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
   // Check actual session status on mount (not just localStorage)
   const checkAuth = useCallback(async () => {
     try {
-      const res = await axios.get("/api/auth/check-auth", {
+      const res = await axios.get("/api/auth/me", {
         withCredentials: true,
       });
       if (res.data?.user) {

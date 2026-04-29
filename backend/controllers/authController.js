@@ -20,27 +20,27 @@ exports.register = async (req, res) => {
 
     // --- Validation ---
     if (!name || !email || !password) {
-      return res.status(400).json({ message: "All fields (name, email, password) are required." });
+      return res.status(400).json({ error: "All fields (name, email, password) are required." });
     }
 
     const trimmedName = name.trim();
     const trimmedEmail = email.trim().toLowerCase();
 
     if (trimmedName.length < 2 || trimmedName.length > 50) {
-      return res.status(400).json({ message: "Name must be between 2 and 50 characters." });
+      return res.status(400).json({ error: "Name must be between 2 and 50 characters." });
     }
 
     if (!isValidEmail(trimmedEmail)) {
-      return res.status(400).json({ message: "Please provide a valid email address." });
+      return res.status(400).json({ error: "Please provide a valid email address." });
     }
 
     if (!isStrongPassword(password)) {
-      return res.status(400).json({ message: "Password must be at least 6 characters with at least one letter and one number." });
+      return res.status(400).json({ error: "Password must be at least 6 characters with at least one letter and one number." });
     }
 
     const existing = await User.findOne({ email: trimmedEmail });
     if (existing) {
-      return res.status(409).json({ message: "An account with this email already exists." });
+      return res.status(409).json({ error: "An account with this email already exists." });
     }
 
     const hash = await bcrypt.hash(password, 12);
@@ -50,10 +50,22 @@ exports.register = async (req, res) => {
       password: hash,
     });
 
-    res.status(201).json({ message: "Registered successfully." });
+    // Log the user in immediately after successful registration
+    req.login(user, (err) => {
+      if (err) {
+        return res.status(500).json({ error: "Registration successful, but auto-login failed. Please log in manually." });
+      }
+      res.status(201).json({
+        message: "Registered and logged in successfully.",
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+        },
+      });
+    });
   } catch (err) {
-
-    res.status(500).json({ message: "Server error during registration. Please try again." });
+    res.status(500).json({ error: "Server error during registration. Please try again." });
   }
 };
 
@@ -77,7 +89,7 @@ exports.logout = (req, res) => {
   req.logout((err) => {
     if (err) {
 
-      return res.status(500).json({ message: "Logout failed. Please try again." });
+      return res.status(500).json({ error: "Logout failed. Please try again." });
     }
     res.clearCookie("connect.sid");
     res.json({ message: "Logged out successfully." });

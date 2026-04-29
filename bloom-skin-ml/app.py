@@ -11,13 +11,24 @@ import io
 import cv2
 from mtcnn.mtcnn import MTCNN
 import os
+import logging
 
 # --- 1. CONFIGURATION & INITIALIZATION ---
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": ["http://localhost:3000", "http://localhost:5173"]}})
+CORS(app, resources={r"/*": {"origins": [
+    "http://localhost:3000",
+    "http://localhost:5173",
+]}})
 
-MODEL_PATH = './model/skin_problem_classifier_v1.h5'
-CONFIDENCE_THRESHOLD = 0.80
+# Configure logging instead of print statements
+logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
+logger = logging.getLogger(__name__)
+
+# Configuration
+MODEL_PATH = os.environ.get('MODEL_PATH', './model/skin_problem_classifier_v1.h5')
+CONFIDENCE_THRESHOLD = float(os.environ.get('CONFIDENCE_THRESHOLD', 0.50))
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+ALLOWED_MIME_TYPES = {'image/jpeg', 'image/png', 'image/jpg', 'image/webp'}
 
 CLASS_LABELS = ['Blackheads', 'Cyst', 'Papules', 'Pustules', 'Whiteheads']
 
@@ -39,11 +50,11 @@ try:
     if os.path.exists(MODEL_PATH):
         model = tf.keras.models.load_model(MODEL_PATH)
         face_detector = MTCNN()
-        print("✅ Model and face detector loaded successfully.")
+        logger.info("Model and face detector loaded successfully.")
     else:
-        print(f"❌ Model not found at path: {MODEL_PATH}")
+        logger.error(f"Model not found at path: {MODEL_PATH}")
 except Exception as e:
-    print(f"❌ Failed to load model or detector: {e}")
+    logger.error(f"Failed to load model or detector: {e}")
 
 # --- 3. CORE LOGIC: IMAGE ANALYSIS ---
 def analyze_skin_image(image_bytes):
@@ -61,13 +72,15 @@ def analyze_skin_image(image_bytes):
     image_to_process = img_rgb
 
     if detections:
-        print("✅ Face detected. Cropping...")
+        logger.info("Face detected. Cropping region of interest.")
         x, y, width, height = detections[0]['box']
-        x1, y1 = max(0, x - 20), max(0, y - 20)
-        x2, y2 = min(img_rgb.shape[1], x + width + 20), min(img_rgb.shape[0], y + height + 20)
+        # Pad the bounding box by 25% to ensure cheeks and forehead are included
+        pad_w, pad_h = int(width * 0.25), int(height * 0.25)
+        x1, y1 = max(0, x - pad_w), max(0, y - pad_h)
+        x2, y2 = min(img_rgb.shape[1], x + width + pad_w), min(img_rgb.shape[0], y + height + pad_h)
         image_to_process = img_rgb[y1:y2, x1:x2]
     else:
-        print("⚠️ No face detected. Using full image.")
+        logger.info("No face detected. Using full image for analysis.")
 
     try:
         resized_image = cv2.resize(image_to_process, (224, 224))
@@ -86,7 +99,7 @@ def analyze_skin_image(image_bytes):
             'info': TREATMENT_INFO[predicted_class]['info']
         }, 200
     except Exception as e:
-        print(f"❌ Image processing failed: {e}")
+        logger.error(f"Image processing failed: {e}")
         return {
             'class': 'Invalid Image',
             'confidence': 0.0,
@@ -106,14 +119,34 @@ def predict():
     if file.filename == '':
         return jsonify({'error': 'Empty file submitted.'}), 400
 
+    # --- File Size Validation ---
+    file.seek(0, 2)  # Seek to end
+    file_size = file.tell()
+    file.seek(0)     # Seek back to start
+    if file_size > MAX_FILE_SIZE:
+        return jsonify({'error': f'File too large. Maximum allowed size is {MAX_FILE_SIZE // (1024*1024)}MB.'}), 413
+
+    # --- MIME Type Validation ---
+    if file.content_type and file.content_type not in ALLOWED_MIME_TYPES:
+        return jsonify({'error': 'Invalid file type. Please upload a JPEG, PNG, or WebP image.'}), 415
+
     try:
         image_bytes = file.read()
         result, status = analyze_skin_image(image_bytes)
         return jsonify(result), status
     except Exception as e:
-        print(f"❌ Error during /predict request: {e}")
+        logger.error(f"Error during /predict request: {e}")
         return jsonify({'error': 'Internal server error.'}), 500
 
-# --- 5. RUN APP ---
+# --- 5. HEALTH CHECK ---
+@app.route('/health', methods=['GET'])
+def health():
+    return jsonify({
+        'status': 'healthy',
+        'model_loaded': model is not None,
+        'detector_loaded': face_detector is not None,
+    }), 200
+
+# --- 6. RUN APP ---
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False)

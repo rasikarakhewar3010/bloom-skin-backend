@@ -2,10 +2,17 @@
  * =================================================================
  *  RECOMMENDATION KNOWLEDGE BASE
  *  Curated skincare knowledge mapped to detectable conditions.
- *  Each condition maps to products, ingredients, and routines
- *  with priority scores for weighted recommendation ranking.
+ *  Each condition maps to real products with dynamic Google Shopping
+ *  search links (never break, always show latest prices).
  * =================================================================
  */
+
+/**
+ * Generates a Google Shopping search URL for a product.
+ * This approach ensures links NEVER break — unlike hardcoded retailer URLs.
+ */
+const shopLink = (productName) =>
+  `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(productName)}`;
 
 const KNOWLEDGE_BASE = {
   Blackheads: {
@@ -20,11 +27,31 @@ const KNOWLEDGE_BASE = {
       { name: 'AHA (Glycolic Acid)', benefit: 'Exfoliates surface dead skin cells', priority: 6 },
     ],
     products: [
-      { type: 'Cleanser', suggestion: 'Salicylic Acid Face Wash (2%)', usage: 'Twice daily, morning and night', priority: 10 },
-      { type: 'Exfoliant', suggestion: 'BHA Liquid Exfoliant', usage: '2-3 times per week at night', priority: 9 },
-      { type: 'Mask', suggestion: 'Clay Mask with Kaolin', usage: 'Once a week', priority: 7 },
-      { type: 'Moisturizer', suggestion: 'Oil-Free Gel Moisturizer with Niacinamide', usage: 'Twice daily after cleansing', priority: 8 },
-      { type: 'Sunscreen', suggestion: 'Lightweight SPF 50 Non-Comedogenic', usage: 'Every morning, reapply every 2 hours', priority: 10 },
+      {
+        type: 'Cleanser', suggestion: 'Minimalist 2% Salicylic Acid Face Wash',
+        usage: 'Twice daily, morning and night', priority: 10,
+        buyLink: shopLink('Minimalist 2% Salicylic Acid Face Wash'),
+      },
+      {
+        type: 'Exfoliant', suggestion: "Paula's Choice 2% BHA Liquid Exfoliant",
+        usage: '2-3 times per week at night', priority: 9,
+        buyLink: shopLink("Paula's Choice 2% BHA Liquid Exfoliant"),
+      },
+      {
+        type: 'Mask', suggestion: 'Innisfree Super Volcanic Pore Clay Mask',
+        usage: 'Once a week', priority: 7,
+        buyLink: shopLink('Innisfree Super Volcanic Pore Clay Mask'),
+      },
+      {
+        type: 'Moisturizer', suggestion: 'Neutrogena Oil-Free Moisturizer',
+        usage: 'Twice daily after cleansing', priority: 8,
+        buyLink: shopLink('Neutrogena Oil Free Moisturizer'),
+      },
+      {
+        type: 'Sunscreen', suggestion: 'La Shield Fisico SPF 50 Sunscreen Gel',
+        usage: 'Every morning, reapply every 2 hours', priority: 10,
+        buyLink: shopLink('La Shield Fisico SPF 50 Sunscreen Gel'),
+      },
     ],
     tips: [
       'Never squeeze blackheads — it can cause scarring and push bacteria deeper.',
@@ -47,11 +74,31 @@ const KNOWLEDGE_BASE = {
       { name: 'Zinc', benefit: 'Anti-inflammatory and oil-regulating', priority: 6 },
     ],
     products: [
-      { type: 'Treatment', suggestion: 'Adapalene Gel 0.1%', usage: 'At night, start 3x per week', priority: 10 },
-      { type: 'Cleanser', suggestion: 'Gentle Foaming Cleanser with Salicylic Acid', usage: 'Morning and night', priority: 9 },
-      { type: 'Serum', suggestion: 'Niacinamide 10% + Zinc 1% Serum', usage: 'Morning, before moisturizer', priority: 8 },
-      { type: 'Moisturizer', suggestion: 'Lightweight Hydrating Gel', usage: 'After treatment, morning and night', priority: 7 },
-      { type: 'Sunscreen', suggestion: 'Mineral SPF 30+ Sunscreen', usage: 'Every morning', priority: 10 },
+      {
+        type: 'Treatment', suggestion: 'Minimalist 0.1% Adapalene Gel',
+        usage: 'At night, start 3x per week', priority: 10,
+        buyLink: shopLink('Minimalist 0.1% Adapalene Gel'),
+      },
+      {
+        type: 'Cleanser', suggestion: 'Cetaphil Gentle Foaming Cleanser',
+        usage: 'Morning and night', priority: 9,
+        buyLink: shopLink('Cetaphil Gentle Foaming Cleanser'),
+      },
+      {
+        type: 'Serum', suggestion: 'Minimalist 10% Niacinamide + Zinc Serum',
+        usage: 'Morning, before moisturizer', priority: 8,
+        buyLink: shopLink('Minimalist 10% Niacinamide Zinc Serum'),
+      },
+      {
+        type: 'Moisturizer', suggestion: 'Neutrogena Hydro Boost Water Gel',
+        usage: 'After treatment, morning and night', priority: 7,
+        buyLink: shopLink('Neutrogena Hydro Boost Water Gel'),
+      },
+      {
+        type: 'Sunscreen', suggestion: 'Minimalist SPF 50 Sunscreen',
+        usage: 'Every morning', priority: 10,
+        buyLink: shopLink('Minimalist SPF 50 Sunscreen'),
+      },
     ],
     tips: [
       'Be patient — retinoids take 8-12 weeks to show full results.',
@@ -74,11 +121,31 @@ const KNOWLEDGE_BASE = {
       { name: 'Green Tea Extract', benefit: 'Antioxidant that reduces inflammation', priority: 6 },
     ],
     products: [
-      { type: 'Spot Treatment', suggestion: 'Benzoyl Peroxide 2.5% Gel', usage: 'On affected areas at night', priority: 10 },
-      { type: 'Cleanser', suggestion: 'Gentle Non-Foaming Cleanser', usage: 'Morning and night', priority: 9 },
-      { type: 'Serum', suggestion: 'Centella Asiatica Recovery Serum', usage: 'After cleansing, morning', priority: 8 },
-      { type: 'Moisturizer', suggestion: 'Soothing Barrier Repair Cream', usage: 'Morning and night', priority: 8 },
-      { type: 'Sunscreen', suggestion: 'Gentle Mineral Sunscreen SPF 50', usage: 'Every morning', priority: 10 },
+      {
+        type: 'Spot Treatment', suggestion: 'Benzac AC 2.5% Benzoyl Peroxide Gel',
+        usage: 'On affected areas at night', priority: 10,
+        buyLink: shopLink('Benzac AC 2.5% Benzoyl Peroxide Gel'),
+      },
+      {
+        type: 'Cleanser', suggestion: 'CeraVe Foaming Facial Cleanser',
+        usage: 'Morning and night', priority: 9,
+        buyLink: shopLink('CeraVe Foaming Facial Cleanser'),
+      },
+      {
+        type: 'Serum', suggestion: 'Dot & Key Cica Calming Skin Clarifying Serum',
+        usage: 'After cleansing, morning', priority: 8,
+        buyLink: shopLink('Dot & Key Cica Calming Skin Clarifying Serum'),
+      },
+      {
+        type: 'Moisturizer', suggestion: 'CeraVe Moisturizing Cream',
+        usage: 'Morning and night', priority: 8,
+        buyLink: shopLink('CeraVe Moisturizing Cream'),
+      },
+      {
+        type: 'Sunscreen', suggestion: 'Aqualogica Glow+ Dewy Sunscreen SPF 50',
+        usage: 'Every morning', priority: 10,
+        buyLink: shopLink('Aqualogica Glow+ Dewy Sunscreen SPF 50'),
+      },
     ],
     tips: [
       'Do NOT pop or squeeze papules — they have no head and will scar.',
@@ -101,12 +168,36 @@ const KNOWLEDGE_BASE = {
       { name: 'Niacinamide', benefit: 'Reduces redness and post-inflammatory marks', priority: 8 },
     ],
     products: [
-      { type: 'Spot Treatment', suggestion: 'Benzoyl Peroxide 5% Cream', usage: 'Directly on pustules at night', priority: 10 },
-      { type: 'Cleanser', suggestion: 'Medicated Acne Cleanser with Salicylic Acid', usage: 'Morning and night', priority: 9 },
-      { type: 'Serum', suggestion: 'Niacinamide + Zinc Serum', usage: 'Morning, on clean skin', priority: 8 },
-      { type: 'Moisturizer', suggestion: 'Oil-Free Hydrating Lotion', usage: 'After serum, morning and night', priority: 7 },
-      { type: 'Sunscreen', suggestion: 'Non-Comedogenic SPF 50', usage: 'Every morning', priority: 10 },
-      { type: 'Mask', suggestion: 'Sulfur-Based Drying Mask', usage: 'Once a week on affected areas', priority: 6 },
+      {
+        type: 'Spot Treatment', suggestion: 'Benzac AC 5% Benzoyl Peroxide Gel',
+        usage: 'Directly on pustules at night', priority: 10,
+        buyLink: shopLink('Benzac AC 5% Benzoyl Peroxide Gel'),
+      },
+      {
+        type: 'Cleanser', suggestion: 'Minimalist 2% Salicylic Acid Face Wash',
+        usage: 'Morning and night', priority: 9,
+        buyLink: shopLink('Minimalist 2% Salicylic Acid Face Wash'),
+      },
+      {
+        type: 'Serum', suggestion: 'Minimalist 10% Niacinamide + Zinc Serum',
+        usage: 'Morning, on clean skin', priority: 8,
+        buyLink: shopLink('Minimalist 10% Niacinamide Zinc Serum'),
+      },
+      {
+        type: 'Moisturizer', suggestion: 'Plum Green Tea Oil-Free Moisturizer',
+        usage: 'After serum, morning and night', priority: 7,
+        buyLink: shopLink('Plum Green Tea Oil Free Moisturizer'),
+      },
+      {
+        type: 'Sunscreen', suggestion: "Re'equil Ultra Matte Dry Touch Sunscreen SPF 50",
+        usage: 'Every morning', priority: 10,
+        buyLink: shopLink("Re'equil Ultra Matte Dry Touch Sunscreen SPF 50"),
+      },
+      {
+        type: 'Mask', suggestion: 'Innisfree Super Volcanic Pore Clay Mask',
+        usage: 'Once a week on affected areas', priority: 6,
+        buyLink: shopLink('Innisfree Super Volcanic Pore Clay Mask'),
+      },
     ],
     tips: [
       'If you must extract, use a sterilized comedone extractor — never your fingers.',
@@ -129,12 +220,36 @@ const KNOWLEDGE_BASE = {
       { name: 'Zinc Supplements', benefit: 'Internal anti-inflammatory support', priority: 7 },
     ],
     products: [
-      { type: 'Treatment', suggestion: 'Prescription Retinoid (consult dermatologist)', usage: 'Nightly as prescribed', priority: 10 },
-      { type: 'Spot Treatment', suggestion: 'Benzoyl Peroxide 5% + Hydrocortisone', usage: 'On cysts, morning and night', priority: 9 },
-      { type: 'Cleanser', suggestion: 'Gentle pH-Balanced Cleanser', usage: 'Morning and night — DO NOT scrub', priority: 9 },
-      { type: 'Serum', suggestion: 'Azelaic Acid 10% Serum', usage: 'Nightly after cleansing', priority: 8 },
-      { type: 'Moisturizer', suggestion: 'Ceramide Barrier Repair Moisturizer', usage: 'Morning and night', priority: 8 },
-      { type: 'Sunscreen', suggestion: 'Broad Spectrum SPF 50+', usage: 'Every morning — crucial with retinoids', priority: 10 },
+      {
+        type: 'Treatment', suggestion: 'Minimalist 0.6% Retinol Face Cream',
+        usage: 'Nightly as prescribed — consult a dermatologist first', priority: 10,
+        buyLink: shopLink('Minimalist 0.6% Retinol Face Cream'),
+      },
+      {
+        type: 'Spot Treatment', suggestion: 'Benzac AC 5% Benzoyl Peroxide Gel',
+        usage: 'On cysts, morning and night', priority: 9,
+        buyLink: shopLink('Benzac AC 5% Benzoyl Peroxide Gel'),
+      },
+      {
+        type: 'Cleanser', suggestion: 'Cetaphil Gentle Skin Cleanser',
+        usage: 'Morning and night — DO NOT scrub', priority: 9,
+        buyLink: shopLink('Cetaphil Gentle Skin Cleanser'),
+      },
+      {
+        type: 'Serum', suggestion: 'Minimalist 10% Azelaic Acid Serum',
+        usage: 'Nightly after cleansing', priority: 8,
+        buyLink: shopLink('Minimalist 10% Azelaic Acid Serum'),
+      },
+      {
+        type: 'Moisturizer', suggestion: 'CeraVe Moisturizing Cream with Ceramides',
+        usage: 'Morning and night', priority: 8,
+        buyLink: shopLink('CeraVe Moisturizing Cream'),
+      },
+      {
+        type: 'Sunscreen', suggestion: 'La Shield Fisico SPF 50 Sunscreen Gel',
+        usage: 'Every morning — crucial with retinoids', priority: 10,
+        buyLink: shopLink('La Shield Fisico SPF 50 Sunscreen Gel'),
+      },
     ],
     tips: [
       '⚠️ NEVER squeeze cystic acne — it will cause deep scarring.',
@@ -158,10 +273,26 @@ const KNOWLEDGE_BASE = {
       { name: 'Peptides', benefit: 'Supports collagen production', priority: 7 },
     ],
     products: [
-      { type: 'Serum', suggestion: 'Vitamin C 15% Brightening Serum', usage: 'Every morning before moisturizer', priority: 9 },
-      { type: 'Moisturizer', suggestion: 'Hydrating Cream with Ceramides + HA', usage: 'Morning and night', priority: 8 },
-      { type: 'Sunscreen', suggestion: 'Daily UV Protection SPF 50', usage: 'Every morning, rain or shine', priority: 10 },
-      { type: 'Cleanser', suggestion: 'Gentle Hydrating Cleanser', usage: 'Morning and night', priority: 8 },
+      {
+        type: 'Serum', suggestion: 'Garnier Bright Complete Vitamin C Serum',
+        usage: 'Every morning before moisturizer', priority: 9,
+        buyLink: shopLink('Garnier Bright Complete Vitamin C Serum'),
+      },
+      {
+        type: 'Moisturizer', suggestion: 'Neutrogena Hydro Boost Water Gel',
+        usage: 'Morning and night', priority: 8,
+        buyLink: shopLink('Neutrogena Hydro Boost Water Gel'),
+      },
+      {
+        type: 'Sunscreen', suggestion: 'Minimalist SPF 50 Sunscreen',
+        usage: 'Every morning, rain or shine', priority: 10,
+        buyLink: shopLink('Minimalist SPF 50 Sunscreen'),
+      },
+      {
+        type: 'Cleanser', suggestion: 'Simple Kind To Skin Refreshing Facial Wash',
+        usage: 'Morning and night', priority: 8,
+        buyLink: shopLink('Simple Kind To Skin Refreshing Facial Wash'),
+      },
     ],
     tips: [
       'Great job maintaining healthy skin! Keep up your current routine.',
@@ -175,13 +306,15 @@ const KNOWLEDGE_BASE = {
 
 /**
  * Ingredient compatibility matrix for conflict detection.
- * Key = ingredient, Value = array of incompatible ingredients.
+ *
+ * NOTE: Vitamin C + Niacinamide was REMOVED — this is a debunked
+ * dermatological myth. Modern research confirms they are safe
+ * and even synergistic when used together.
  */
 const INGREDIENT_CONFLICTS = {
   'Retinol': ['AHA (Glycolic Acid)', 'Vitamin C', 'Benzoyl Peroxide (2.5-5%)', 'Benzoyl Peroxide (5%)', 'Benzoyl Peroxide (5-10%)'],
   'Retinoid (Adapalene)': ['AHA (Glycolic Acid)', 'Vitamin C'],
   'Retinoid (Tretinoin)': ['AHA (Glycolic Acid)', 'Vitamin C', 'Benzoyl Peroxide (5-10%)'],
-  'Vitamin C': ['Retinol', 'Retinoid (Adapalene)', 'Retinoid (Tretinoin)', 'Niacinamide'],
   'AHA (Glycolic Acid)': ['Retinol', 'Retinoid (Adapalene)', 'Retinoid (Tretinoin)', 'Salicylic Acid'],
   'Benzoyl Peroxide (2.5-5%)': ['Retinol', 'Vitamin C'],
   'Benzoyl Peroxide (5%)': ['Retinol', 'Vitamin C'],

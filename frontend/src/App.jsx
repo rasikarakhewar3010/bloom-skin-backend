@@ -16,8 +16,11 @@ const DashboardPage = lazy(() => import('./DashboardPage/DashboardPage'));
 const RecommendationsPage = lazy(() => import('./RecommendationsPage/RecommendationsPage'));
 const RoutinePage = lazy(() => import('./RoutinePage/RoutinePage'));
 const NotFoundPage = lazy(() => import('./components/NotFoundPage'));
+const ForgotPassword = lazy(() => import('./LoginPage/ForgotPassword'));
+const ResetPassword = lazy(() => import('./LoginPage/ResetPassword'));
 
 import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 // Simple fallback during lazy loading
 const PageFallback = () => (
@@ -57,17 +60,23 @@ function AppWrapper() {
     <AuthProvider>
       <Suspense fallback={<PageFallback />}>
         <Routes>
+          {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/guide" element={<GuidePage />} />
           <Route path="/contact" element={<ContactUsPage />} />
           <Route path="/login" element={<LoginSignup />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/aichat" element={<AIChatPage />} /> 
-          <Route path="/history" element={<Page />} /> 
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/recommendations" element={<RecommendationsPage />} />
-          <Route path="/routine" element={<RoutinePage />} />
-          <Route path="*" element={<NotFoundPage />} /> 
+
+          {/* Protected Routes — Require Authentication */}
+          <Route path="/aichat" element={<ProtectedRoute><AIChatPage /></ProtectedRoute>} />
+          <Route path="/history" element={<ProtectedRoute><Page /></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+          <Route path="/recommendations" element={<ProtectedRoute><RecommendationsPage /></ProtectedRoute>} />
+          <Route path="/routine" element={<ProtectedRoute><RoutinePage /></ProtectedRoute>} />
+
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
     </AuthProvider>

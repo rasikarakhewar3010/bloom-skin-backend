@@ -11,7 +11,7 @@ export default defineConfig({
     proxy: {
       // This will proxy any request starting with /api to your Node.js backend
       '/api': {
-        target: 'http://localhost:3000', // Your Node.js server
+        target: 'http://127.0.0.1:3000', // Your Node.js server
         changeOrigin: true, // Recommended for virtual hosted sites
         secure: false,      // Recommended for http targets
       },

@@ -94,8 +94,11 @@ export function NavbarDemo() {
                 {/* Profile Dropdown */}
                 {isProfileOpen && (
                   <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 animate-in fade-in slide-in-from-top-2 z-50">
-                    <div className="px-4 py-2 border-b border-gray-50 mb-1">
-                      <p className="text-sm font-semibold text-gray-800">My Profile</p>
+                    <div className="px-4 py-2.5 border-b border-gray-50 mb-1">
+                      <p className="text-sm font-semibold text-gray-800 truncate">{user?.name || 'My Profile'}</p>
+                      {user?.email && (
+                        <p className="text-xs text-gray-400 truncate mt-0.5">{user.email}</p>
+                      )}
                     </div>
                     {profileItems.map((item) => (
                       <Link

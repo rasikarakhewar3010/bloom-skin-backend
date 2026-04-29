@@ -2,25 +2,29 @@ const express = require("express");
 const passport = require("passport");
 const router = express.Router();
 const { register, login, logout } = require("../controllers/authController");
+const { forgotPassword, resetPassword } = require("../controllers/passwordController");
+const { authLimiter } = require("../middleware/rateLimiter");
 
-// Register
-router.post("/register", register);
+// @route   POST /api/auth/register
+// @desc    Register a new user account
+// @access  Public (rate-limited)
+router.post("/register", authLimiter, register);
 
-// Local Login
-router.post("/login", passport.authenticate("local", {
+// @route   POST /api/auth/login
+// @desc    Authenticate user with email/password
+// @access  Public (rate-limited)
+router.post("/login", authLimiter, passport.authenticate("local", {
   failureRedirect: "/api/auth/login/failed",
 }), login);
 
-// Logout
-router.get("/logout", (req, res) => {
-  req.logout(() => {
-    res.clearCookie("connect.sid");
-    res.status(200).json({ message: "Logged out" });
-  });
-});
+// @route   GET /api/auth/logout
+// @desc    Destroy session and clear cookie
+// @access  Private
+router.get("/logout", logout);
 
 // @route   GET /api/auth/google
-// @desc    Start Google OAuth
+// @desc    Initiate Google OAuth 2.0 flow
+// @access  Public
 router.get(
   "/google",
   passport.authenticate("google", {
@@ -31,6 +35,7 @@ router.get(
 
 // @route   GET /api/auth/google/callback
 // @desc    Handle Google OAuth callback
+// @access  Public
 router.get(
   "/google/callback",
   passport.authenticate("google", {
@@ -38,34 +43,35 @@ router.get(
     session: true,
   }),
   (req, res) => {
-    //  Redirect to frontend on success
-    res.redirect(process.env.FRONTEND_URL || "http://localhost:3000");
+    res.redirect(process.env.FRONTEND_URL || "http://localhost:5173");
   }
 );
 
-
-// Auth failure
+// @route   GET /api/auth/login/failed
+// @desc    Auth failure handler
+// @access  Public
 router.get("/login/failed", (req, res) => {
-  res.status(401).json({ message: "Login failed" });
+  res.status(401).json({ error: "Authentication failed. Please check your credentials." });
 });
 
-// Auth check route
+// @route   GET /api/auth/me
+// @desc    Get current authenticated user's info
+// @access  Private
 router.get("/me", (req, res) => {
   if (req.isAuthenticated()) {
-    res.status(200).json(req.user);
-  } else {
-    res.status(401).json({ message: "Not authenticated" });
-  }
-});
-
-
-router.get("/check-auth", (req, res) => {
-  if (req.isAuthenticated()) {
     return res.json({ user: req.user });
-  } else {
-    return res.status(401).json({ message: "Not authenticated" });
   }
+  res.status(401).json({ error: "Not authenticated." });
 });
 
+// @route   POST /api/auth/forgot-password
+// @desc    Send password reset email
+// @access  Public (rate-limited)
+router.post("/forgot-password", authLimiter, forgotPassword);
+
+// @route   POST /api/auth/reset-password/:token
+// @desc    Reset password with token
+// @access  Public (rate-limited)
+router.post("/reset-password/:token", authLimiter, resetPassword);
 
 module.exports = router;

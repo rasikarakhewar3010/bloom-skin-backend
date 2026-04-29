@@ -38,7 +38,7 @@ const ProductCard = ({ product }) => {
         <div className="w-10 h-10 bg-gradient-to-br from-pink-100 to-purple-100 rounded-xl flex items-center justify-center text-lg">
           {typeIcons[product.type] || '💊'}
         </div>
-        <div>
+        <div className="flex-1">
           <span className="text-xs font-bold text-pink-500 uppercase tracking-wider">{product.type}</span>
           {product.relevantCondition && (
             <span className="text-xs text-gray-400 ml-2">for {product.relevantCondition}</span>
@@ -46,9 +46,19 @@ const ProductCard = ({ product }) => {
         </div>
       </div>
       <h4 className="font-bold text-gray-800 text-sm mb-1">{product.suggestion}</h4>
-      <p className="text-xs text-gray-500 flex items-center gap-1">
+      <p className="text-xs text-gray-500 flex items-center gap-1 mb-3">
         <span>🕐</span> {product.usage}
       </p>
+      {product.buyLink && (
+        <a
+          href={product.buyLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-gradient-to-r from-pink-500 to-rose-500 px-4 py-2 rounded-full hover:from-pink-600 hover:to-rose-600 transition-all shadow-sm hover:shadow-md"
+        >
+          🛒 Shop Best Price →
+        </a>
+      )}
     </div>
   );
 };
@@ -212,7 +222,7 @@ const RecommendationsPage = () => {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex-1 sm:flex-none py-3 px-6 text-center font-medium transition-colors relative
+              className={`flex-1 sm:flex-none py-3 px-6 text-center font-medium transition-colors relative cursor-pointer
                 ${activeTab === tab.key
                   ? 'text-pink-600 border-b-2 border-pink-500'
                   : 'text-gray-500 hover:text-gray-700'}`}

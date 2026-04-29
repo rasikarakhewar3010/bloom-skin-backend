@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FcGoogle } from "react-icons/fc";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { Eye, EyeOff } from "lucide-react";
 
 const LoginSignup = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [flash, setFlash] = useState({ message: "", type: "" });
   const [submitting, setSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { isLoggedIn, setIsLoggedIn, setUser, checkAuth } = useAuth();
 
@@ -64,7 +66,7 @@ const LoginSignup = () => {
         navigate("/");
       }, 1000);
     } catch (err) {
-      showFlash(err.response?.data?.message || err.message, "error");
+      showFlash(err.response?.data?.error || err.response?.data?.message || err.message, "error");
     } finally {
       setSubmitting(false);
     }
@@ -136,19 +138,38 @@ const LoginSignup = () => {
             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-pink-400"
             required
           />
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={form.password || ""}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-pink-400"
-            required
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Password"
+              value={form.password || ""}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-pink-400 pr-10"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer"
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
+          {isLogin && (
+            <div className="text-right">
+              <Link
+                to="/forgot-password"
+                className="text-sm text-pink-500 hover:text-pink-600 font-medium transition"
+              >
+                Forgot Password?
+              </Link>
+            </div>
+          )}
           <button
             type="submit"
             disabled={submitting}
-            className="w-full bg-pink-500 text-white py-2 rounded-md hover:bg-pink-600 transition disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full bg-pink-500 text-white py-2 rounded-md hover:bg-pink-600 transition disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
           >
             {submitting ? "Please wait..." : isLogin ? "Login" : "Sign Up"}
           </button>

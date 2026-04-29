@@ -4,9 +4,9 @@ import { Link } from 'react-router-dom';
 
 const BloomSkinFooter = () => {
   return (
-    <footer className="bg-white border-t border-gray-100 pt-16 pb-8">
+    <footer className="bg-pink-50 border-t border-pink-100 pt-10 pb-6">
       <div className="container mx-auto px-4 max-w-7xl">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
           
           {/* Brand Column */}
           <div className="lg:col-span-2 space-y-6">
@@ -71,15 +71,10 @@ const BloomSkinFooter = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-gray-400 font-medium">
+        <div className="pt-6 border-t border-pink-100 flex justify-center items-center text-center">
+          <p className="text-sm text-gray-500 font-medium">
             © {new Date().getFullYear()} BloomSkin Inc. All rights reserved.
           </p>
-          <div className="flex items-center gap-2 text-sm text-gray-400 font-medium">
-            <span>Made with</span>
-            <span className="text-pink-500">♥</span>
-            <span>for better skin.</span>
-          </div>
         </div>
       </div>
     </footer>

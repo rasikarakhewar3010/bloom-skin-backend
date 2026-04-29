@@ -36,6 +36,16 @@ const RoutineStepCard = ({ step, index }) => {
         <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
           <span>🕐</span> {step.usage}
         </p>
+        {step.buyLink && (
+          <a
+            href={step.buyLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-pink-500 hover:text-pink-600 transition-colors"
+          >
+            🛒 Shop Best Price →
+          </a>
+        )}
       </div>
     </div>
   );
@@ -217,7 +227,7 @@ const RoutinePage = () => {
           <div className="bg-gray-100 rounded-full p-1 flex shadow-inner">
             <button
               onClick={() => setTimeOfDay('morning')}
-              className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all ${
+              className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all cursor-pointer ${
                 timeOfDay === 'morning'
                   ? 'bg-gradient-to-r from-amber-400 to-orange-400 text-white shadow-md'
                   : 'text-gray-500 hover:text-gray-700'
@@ -227,7 +237,7 @@ const RoutinePage = () => {
             </button>
             <button
               onClick={() => setTimeOfDay('night')}
-              className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all ${
+              className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all cursor-pointer ${
                 timeOfDay === 'night'
                   ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md'
                   : 'text-gray-500 hover:text-gray-700'
